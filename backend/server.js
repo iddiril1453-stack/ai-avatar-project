@@ -11,11 +11,17 @@ import { handleChat } from "./services/chatService.js";
 const app = express();
 const __dirname = path.resolve();
 
+// 🔥 CSP FIX (TEMP SAFE)
+app.use((req, res, next) => {
+  res.removeHeader("Content-Security-Policy");
+  next();
+});
+
 // middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// 🔥 FRONTEND SERVE (BUILD)
+// 🔥 SERVE FRONTEND BUILD
 app.use(express.static(path.join(__dirname, "frontend/dist")));
 
 // 🧠 CHAT API
@@ -37,17 +43,19 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// 🧪 TEST ROUTE
+// 🧪 TEST
 app.get("/api", (req, res) => {
   res.send("AI Avatar Backend Çalışıyor 🚀");
 });
 
-// 🌐 FRONTEND ROUTE (SPA FIX)
+// 🌐 FRONTEND ROUTE (IMPORTANT)
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/dist", "index.html"));
 });
 
 // 🚀 START SERVER
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Server running on http://localhost:" + PORT);
 });
