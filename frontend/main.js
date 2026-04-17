@@ -128,12 +128,25 @@ function animateCharacter() {
    LOOP
 ========================= */
 
-function animate() {
-  requestAnimationFrame(animate);
+function animateCharacter() {
+  if (!characterModel) return;
 
-  animateCharacter();
+  const t = clock.getElapsedTime();
 
-  renderer.render(scene, camera);
+  target.set(mouse.x * 1.5, 1.2, 2);
+
+  if (isTalking) {
+    target.y += Math.sin(t * 10) * 0.02;
+  }
+
+  smoothTarget.lerp(target, 0.05);
+
+  // 🔥 HEAD yoksa fallback
+  const lookObject = head || characterModel;
+
+  lookObject.lookAt(smoothTarget);
+
+  lookObject.rotation.y += Math.sin(t * 0.5) * 0.01;
 }
 
 animate();
