@@ -5,10 +5,44 @@ import path from "path";
 
 import { handleChat } from "./services/chatService.js";
 
+import fs from "fs";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+
+
 const app = express();
 const __dirname = path.resolve();
 
+app.post("/tts", async (req, res) => {
+  try {
+    const text = req.body.text;
+
+    const response = await openai.audio.speech.create({
+      model: "gpt-4o-mini-tts",
+      voice: "alloy", // tek sabit ses (desktop/mobile aynı)
+      input: text
+    });
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    const filePath = "speech.mp3";
+    fs.writeFileSync(filePath, buffer);
+
+    res.json({ url: "/speech.mp3" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "TTS failed" });
+  }
+});
+
+app.use(express.static(__dirname));
 app.use(cors());
+
 app.use(bodyParser.json());
 
 const distPath = path.join(__dirname, "frontend", "dist");
