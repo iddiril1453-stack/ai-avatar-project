@@ -181,17 +181,14 @@ async function speak(text) {
   try {
     const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/tts", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text })
     });
 
-    const data = await res.json();
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
 
-    const audio = new Audio(
-      "https://ai-avatar-project-d2r9.onrender.com" + data.url
-    );
+    const audio = new Audio(url);
 
     isTalking = true;
 

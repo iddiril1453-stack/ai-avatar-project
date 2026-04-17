@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import path from "path";
-import fs from "fs";
 import OpenAI from "openai";
 
 import { handleChat } from "./services/chatService.js";
@@ -17,13 +16,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-
-
 /* =========================
    PATHS
 ========================= */
 const distPath = path.join(__dirname, "frontend", "dist");
-const publicPath = path.join(__dirname, "public");
 
 /* =========================
    MIDDLEWARE
@@ -32,13 +28,8 @@ app.use(cors());
 app.use(bodyParser.json());
 
 /* =========================
-   STATIC FILES (ORDER IS IMPORTANT)
+   FRONTEND
 ========================= */
-
-// 1) TTS + speech.mp3
-app.use(express.static(publicPath));
-
-// 2) frontend build (Vite)
 app.use(express.static(distPath));
 
 /* =========================
@@ -58,7 +49,7 @@ app.post("/chat", async (req, res) => {
 });
 
 /* =========================
-   TTS API
+   TTS (FIX - NO FILE, DIRECT STREAM)
 ========================= */
 app.post("/tts", async (req, res) => {
   try {
@@ -72,11 +63,8 @@ app.post("/tts", async (req, res) => {
 
     const buffer = Buffer.from(await response.arrayBuffer());
 
-    const filePath = path.join(__dirname, "public", "speech.mp3");
-
-    fs.writeFileSync(filePath, buffer);
-
-    res.json({ url: "/speech.mp3" });
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.send(buffer);
 
   } catch (err) {
     console.error("TTS ERROR:", err);
@@ -102,7 +90,7 @@ app.get("*", (req, res) => {
 });
 
 /* =========================
-   START SERVER
+   START
 ========================= */
 const PORT = process.env.PORT || 3000;
 
