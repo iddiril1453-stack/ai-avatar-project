@@ -23,8 +23,6 @@ const openai = new OpenAI({
 const distPath = path.join(__dirname, "frontend", "dist");
 const publicPath = path.join(__dirname, "public");
 
-app.use(express.static(path.join(__dirname, "public")));
-
 /* =========================
    MIDDLEWARE
 ========================= */
@@ -32,10 +30,14 @@ app.use(cors());
 app.use(bodyParser.json());
 
 /* =========================
-   STATIC FILES
+   STATIC FILES (ORDER IS IMPORTANT)
 ========================= */
-app.use(express.static(distPath));
+
+// 1) TTS + speech.mp3
 app.use(express.static(publicPath));
+
+// 2) frontend build (Vite)
+app.use(express.static(distPath));
 
 /* =========================
    CHAT API
@@ -62,13 +64,14 @@ app.post("/tts", async (req, res) => {
 
     const response = await openai.audio.speech.create({
       model: "gpt-4o-mini-tts",
-      voice: "alloy",
+      voice: "alloy", // SABİT SES (desktop/mobile aynı)
       input: text
     });
 
     const buffer = Buffer.from(await response.arrayBuffer());
 
-    const filePath = path.join(__dirname, "public", "speech.mp3");
+    // 🔥 FILE SAVE
+    const filePath = path.join(publicPath, "speech.mp3");
 
     fs.writeFileSync(filePath, buffer);
 
@@ -79,6 +82,7 @@ app.post("/tts", async (req, res) => {
     res.status(500).json({ error: "TTS failed" });
   }
 });
+
 /* =========================
    ROOT
 ========================= */
@@ -87,7 +91,7 @@ app.get("/", (req, res) => {
 });
 
 /* =========================
-   FALLBACK (SPA)
+   SPA FALLBACK
 ========================= */
 app.get("*", (req, res) => {
   if (req.path.includes(".")) {
@@ -97,7 +101,7 @@ app.get("*", (req, res) => {
 });
 
 /* =========================
-   START
+   START SERVER
 ========================= */
 const PORT = process.env.PORT || 3000;
 
