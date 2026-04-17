@@ -22,7 +22,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // 🔥 SERVE FRONTEND BUILD
-app.use(express.static(path.join(__dirname, "frontend/dist")));
+app.use(express.static(path.join(process.cwd(), "frontend/dist")));
 
 // 🧠 CHAT API
 app.post("/chat", async (req, res) => {
@@ -50,7 +50,7 @@ app.get("/api", (req, res) => {
 
 // 🌐 FRONTEND ROUTE (IMPORTANT)
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/dist", "index.html"));
+  res.sendFile(path.join(process.cwd(), "frontend/dist", "index.html"));
 });
 
 // 🚀 START SERVER
