@@ -6,16 +6,14 @@ import path from "path";
 import { handleChat } from "./services/chatService.js";
 
 const app = express();
-
-// 🚨 ROOT PATH FIX (EN KRİTİK SATIR)
-const root = path.resolve();
+const __dirname = path.resolve();
 
 // middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// 🚨 FRONTEND PATH DOĞRU
-const distPath = path.join(root, "frontend", "dist");
+// ✅ FRONTEND DIST (EN KRİTİK)
+const distPath = path.join(__dirname, "frontend", "dist");
 
 app.use(express.static(distPath));
 
@@ -39,12 +37,7 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// TEST
-app.get("/", (req, res) => {
-  res.send("AI Avatar Backend Çalışıyor 🚀");
-});
-
-// PORT (RENDER ZORUNLU)
+// PORT
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running on", PORT);
