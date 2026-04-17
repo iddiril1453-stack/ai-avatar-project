@@ -9,34 +9,34 @@ import path from "path";
 import { handleChat } from "./services/chatService.js";
 
 const app = express();
-const __dirname = path.resolve();
+const root = process.cwd();
 
-// 🔥 CSP FIX (TEMP SAFE)
+// 🔥 CSP SAFE FIX (opsiyonel)
 app.use((req, res, next) => {
   res.removeHeader("Content-Security-Policy");
   next();
 });
 
-// middleware
+app.use((req, res, next) => {
+  res.removeHeader("Content-Security-Policy");
+  next();
+});
+
 app.use(cors());
 app.use(bodyParser.json());
 
-// 🔥 SERVE FRONTEND BUILD
-app.use(express.static(path.join(process.cwd(), "frontend/dist")));
+// 🔥 FRONTEND SERVE
+app.use(express.static(path.join(root, "frontend", "dist")));
 
 // 🧠 CHAT API
 app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body.message;
-
     const result = await handleChat(userMessage);
-
-    return res.json(result);
-
+    res.json(result);
   } catch (err) {
-    console.error("CHAT ERROR:", err);
-
-    return res.status(500).json({
+    console.error(err);
+    res.status(500).json({
       reply: "Server hatası oluştu",
       intent: "cold"
     });
@@ -48,14 +48,14 @@ app.get("/api", (req, res) => {
   res.send("AI Avatar Backend Çalışıyor 🚀");
 });
 
-// 🌐 FRONTEND ROUTE (IMPORTANT)
+// 🌐 FRONTEND FALLBACK (ÇOK ÖNEMLİ)
 app.get("*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "frontend/dist", "index.html"));
+  res.sendFile(path.join(root, "frontend", "dist", "index.html"));
 });
 
-// 🚀 START SERVER
+// 🚀 PORT
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Server running on http://localhost:" + PORT);
+  console.log("Server running on " + PORT);
 });
