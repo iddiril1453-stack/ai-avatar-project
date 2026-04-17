@@ -17,6 +17,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+
+
 /* =========================
    PATHS
 ========================= */
@@ -64,14 +66,13 @@ app.post("/tts", async (req, res) => {
 
     const response = await openai.audio.speech.create({
       model: "gpt-4o-mini-tts",
-      voice: "alloy", // SABİT SES (desktop/mobile aynı)
+      voice: "alloy",
       input: text
     });
 
     const buffer = Buffer.from(await response.arrayBuffer());
 
-    // 🔥 FILE SAVE
-    const filePath = path.join(publicPath, "speech.mp3");
+    const filePath = path.join(__dirname, "public", "speech.mp3");
 
     fs.writeFileSync(filePath, buffer);
 
