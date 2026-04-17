@@ -177,19 +177,33 @@ async function sendMessage() {
    SPEECH
 ========================= */
 
-function speak(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "tr-TR";
+async function speak(text) {
+  try {
+    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/tts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ text })
+    });
 
-  utterance.onstart = () => {
+    const data = await res.json();
+
+    const audio = new Audio(
+      "https://ai-avatar-project-d2r9.onrender.com" + data.url
+    );
+
     isTalking = true;
-  };
 
-  utterance.onend = () => {
-    isTalking = false;
-  };
+    audio.play();
 
-  speechSynthesis.speak(utterance);
+    audio.onended = () => {
+      isTalking = false;
+    };
+
+  } catch (err) {
+    console.error("TTS error:", err);
+  }
 }
 
 /* =========================
