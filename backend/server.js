@@ -11,11 +11,19 @@ const app = express();
 const __dirname = path.resolve();
 
 /* =========================
-   OPENAI TTS SETUP
+   OPENAI
 ========================= */
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+
+/* =========================
+   PATHS
+========================= */
+const distPath = path.join(__dirname, "frontend", "dist");
+const publicPath = path.join(__dirname, "public");
+
+app.use(express.static(path.join(__dirname, "public")));
 
 /* =========================
    MIDDLEWARE
@@ -24,17 +32,10 @@ app.use(cors());
 app.use(bodyParser.json());
 
 /* =========================
-   FRONTEND DIST
+   STATIC FILES
 ========================= */
-const distPath = path.join(__dirname, "frontend", "dist");
 app.use(express.static(distPath));
-
-/* =========================
-   MODEL GLB FIX
-========================= */
-app.get("/model.glb", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "public", "model.glb"));
-});
+app.use(express.static(publicPath));
 
 /* =========================
    CHAT API
@@ -53,7 +54,7 @@ app.post("/chat", async (req, res) => {
 });
 
 /* =========================
-   TTS API (FIXED + STABLE)
+   TTS API
 ========================= */
 app.post("/tts", async (req, res) => {
   try {
@@ -61,13 +62,13 @@ app.post("/tts", async (req, res) => {
 
     const response = await openai.audio.speech.create({
       model: "gpt-4o-mini-tts",
-      voice: "alloy", // tek sabit ses (desktop/mobile aynı)
+      voice: "alloy",
       input: text
     });
 
     const buffer = Buffer.from(await response.arrayBuffer());
 
-    const filePath = path.join(__dirname, "speech.mp3");
+    const filePath = path.join(__dirname, "public", "speech.mp3");
 
     fs.writeFileSync(filePath, buffer);
 
@@ -78,7 +79,6 @@ app.post("/tts", async (req, res) => {
     res.status(500).json({ error: "TTS failed" });
   }
 });
-
 /* =========================
    ROOT
 ========================= */
@@ -87,7 +87,7 @@ app.get("/", (req, res) => {
 });
 
 /* =========================
-   SAFE SPA FALLBACK
+   FALLBACK (SPA)
 ========================= */
 app.get("*", (req, res) => {
   if (req.path.includes(".")) {
@@ -97,7 +97,7 @@ app.get("*", (req, res) => {
 });
 
 /* =========================
-   START SERVER
+   START
 ========================= */
 const PORT = process.env.PORT || 3000;
 
