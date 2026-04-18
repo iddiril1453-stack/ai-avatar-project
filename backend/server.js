@@ -66,14 +66,10 @@ app.post("/tts", async (req, res) => {
     res.setHeader("Content-Type", "audio/mpeg");
     res.send(buffer);
 
- catch (err) {
-  console.error("TTS FULL ERROR:", err);
-  console.error("TTS MESSAGE:", err.message);
-
-  res.status(500).json({
-    error: "TTS failed"
-  });
-}
+  } catch (err) {
+    console.error("TTS ERROR:", err);
+    res.status(500).json({ error: "TTS failed" });
+  }
 });
 
 /* =========================
