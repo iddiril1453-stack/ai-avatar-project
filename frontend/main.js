@@ -72,7 +72,7 @@ loader.load('./model.glb', (gltf) => {
   const wrapper = new THREE.Group();
   const model = gltf.scene;
 
-  // HEAD BUL + ARM HACK
+  // HEAD + ARM DETECT
   model.traverse((child) => {
     console.log("NODE:", child.name);
 
@@ -84,39 +84,35 @@ loader.load('./model.glb', (gltf) => {
       console.log("HEAD FOUND ✅", child.name);
     }
 
-    // arm relax pose (T-pose kırma)
+    // arm relax (T-pose kırma)
     if (name.includes("arm")) {
       child.rotation.z = -0.3;
     }
   });
 
-  // MODEL SCALE
-model.scale.set(1, 1, 1);
-model.position.set(0, 0, 0);
-model.rotation.set(0, 0, 0);
+  // MODEL TRANSFORM
+  model.scale.set(1, 1, 1);
+  model.position.set(0, 0, 0);
+  model.rotation.set(0, 0, 0);
 
-wrapper.position.set(0, 0, 0);
+  // 🔥 KRİTİK: MODELİ WRAPPER'A EKLE
+  wrapper.add(model);
 
-  // SCENE CENTER FIX
+  // SCENE CENTER
+  wrapper.position.set(0, 0, 0);
 
   scene.add(wrapper);
-scene.add(new THREE.AxesHelper(5));
+
+  // DEBUG AXES
+  scene.add(new THREE.AxesHelper(5));
+
   characterModel = wrapper;
 
-  // HEAD LOOK TARGET (face height)
+  // LOOK TARGET
   target.set(0, 1.6, 2);
   smoothTarget.copy(target);
 
   console.log("MODEL READY 🚀");
-});
-
-/* =========================
-   MOUSE
-========================= */
-
-window.addEventListener("mousemove", (event) => {
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 });
 
 /* =========================
