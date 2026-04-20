@@ -71,26 +71,53 @@ loader.load('./model.glb', (gltf) => {
   const wrapper = new THREE.Group();
   const model = gltf.scene;
 
+  // tüm node isimlerini görmek için (arm / head bulmak için)
   model.traverse((child) => {
-    if (child.name.toLowerCase().includes("head")) {
+    console.log("NODE:", child.name);
+
+    if (
+      child.name &&
+      child.name.toLowerCase().includes("head")
+    ) {
       head = child;
-      console.log("HEAD FOUND ✅");
+      console.log("HEAD FOUND ✅", child.name);
     }
   });
 
-  model.scale.set(1.5, 1.5, 1.5);
+  /*
+    ESKİ:
+    model.scale.set(1.5, 1.5, 1.5);
+    model.position.set(0, 0, 0);
+    model.rotation.y = -1.6;
+
+    wrapper.position.set(0, 0.6, 0);
+  */
+
+  // YENİ DAHA DOĞRU AYAR
+  // model çok küçük olduğu için büyütüyoruz
+  model.scale.set(2.8, 2.8, 2.8);
+
+  // model local pozisyonu
   model.position.set(0, 0, 0);
+
+  // hafif sağa/sola bakış açısı
   model.rotation.y = -1.6;
 
   wrapper.add(model);
-  wrapper.position.set(0, 0.6, 0);
+
+  // modeli ekran merkezine daha iyi almak için
+  wrapper.position.set(0, -0.2, 0);
 
   scene.add(wrapper);
 
   characterModel = wrapper;
 
-  target.set(0, 1.2, 2);
+  // kamera hedefi (yüz bölgesine)
+  target.set(0, 1.6, 2);
+
   smoothTarget.copy(target);
+
+  console.log("MODEL READY 🚀");
 });
 
 /* =========================
@@ -101,7 +128,6 @@ window.addEventListener("mousemove", (event) => {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 });
-
 /* =========================
    CHARACTER LOOK
 ========================= */
