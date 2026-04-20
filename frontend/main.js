@@ -65,7 +65,7 @@ controls.update();
 
 const loader = new GLTFLoader();
 
-loader.load("/model.glb", (gltf) => {
+loader.load("/model.glb?v=2", (gltf) => {
   console.log("MODEL LOADED ✅");
 
   const wrapper = new THREE.Group();
