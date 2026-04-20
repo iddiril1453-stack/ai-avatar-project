@@ -34,7 +34,8 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.set(0, 1.6, 2.5);
+camera.position.set(0, 1.6, 3.5);
+camera.lookAt(0, 1.2, 0);
 
 /* =========================
    RENDERER
@@ -90,17 +91,16 @@ loader.load('./model.glb', (gltf) => {
   });
 
   // MODEL SCALE
-  model.scale.set(2.4, 2.4, 2.4);
+  model.scale.set(1.8, 1.8, 1.8);
 
-  // MODEL RESET
-  model.position.set(0, 0, 0);
-  model.rotation.y = -1.6;
+model.position.set(0, 1.0, 0);
 
-  wrapper.add(model);
+model.rotation.y = -1.55;
+
+wrapper.position.set(0, 0, 0);
 
   // SCENE CENTER FIX
-  wrapper.position.set(0, -1.0, 0);
-
+wrapper.position.set(0, 0, 0);
   scene.add(wrapper);
 
   characterModel = wrapper;
