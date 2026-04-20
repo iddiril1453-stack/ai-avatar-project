@@ -71,50 +71,42 @@ loader.load('./model.glb', (gltf) => {
   const wrapper = new THREE.Group();
   const model = gltf.scene;
 
-  // tüm node isimlerini görmek için (arm / head bulmak için)
+  // HEAD BUL + ARM HACK
   model.traverse((child) => {
     console.log("NODE:", child.name);
 
-    if (
-      child.name &&
-      child.name.toLowerCase().includes("head")
-    ) {
+    const name = child.name?.toLowerCase() || "";
+
+    // head detect
+    if (name.includes("head")) {
       head = child;
       console.log("HEAD FOUND ✅", child.name);
     }
+
+    // arm relax pose (T-pose kırma)
+    if (name.includes("arm")) {
+      child.rotation.z = -0.3;
+    }
   });
 
-  /*
-    ESKİ:
-    model.scale.set(1.5, 1.5, 1.5);
-    model.position.set(0, 0, 0);
-    model.rotation.y = -1.6;
+  // MODEL SCALE
+  model.scale.set(2.4, 2.4, 2.4);
 
-    wrapper.position.set(0, 0.6, 0);
-  */
-
-  // YENİ DAHA DOĞRU AYAR
-  // model çok küçük olduğu için büyütüyoruz
-  model.scale.set(2.8, 2.8, 2.8);
-
-  // model local pozisyonu
+  // MODEL RESET
   model.position.set(0, 0, 0);
-
-  // hafif sağa/sola bakış açısı
   model.rotation.y = -1.6;
 
   wrapper.add(model);
 
-  // modeli ekran merkezine daha iyi almak için
-  wrapper.position.set(0, -0.2, 0);
+  // SCENE CENTER FIX
+  wrapper.position.set(0, -1.0, 0);
 
   scene.add(wrapper);
 
   characterModel = wrapper;
 
-  // kamera hedefi (yüz bölgesine)
+  // HEAD LOOK TARGET (face height)
   target.set(0, 1.6, 2);
-
   smoothTarget.copy(target);
 
   console.log("MODEL READY 🚀");
@@ -128,8 +120,9 @@ window.addEventListener("mousemove", (event) => {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 });
+
 /* =========================
-   CHARACTER LOOK
+   CHARACTER LOOK SYSTEM
 ========================= */
 
 function animateCharacter() {
@@ -137,21 +130,22 @@ function animateCharacter() {
 
   const t = clock.getElapsedTime();
 
-  target.set(mouse.x * 1.5, 1.2, 2);
+  // mouse → 3D target
+  target.set(mouse.x * 1.5, 1.6 + mouse.y * 0.5, 2);
 
+  // talking motion
   if (isTalking) {
     target.y += Math.sin(t * 10) * 0.02;
   }
 
   smoothTarget.lerp(target, 0.05);
 
+  // SINGLE SOURCE OF TRUTH (IMPORTANT)
   head.lookAt(smoothTarget);
-
-  head.rotation.y = Math.PI + Math.sin(t * 0.5) * 0.01;
 }
 
 /* =========================
-   LOOP
+   MAIN LOOP
 ========================= */
 
 function animate() {
@@ -163,6 +157,7 @@ function animate() {
 }
 
 animate();
+
 
 /* =========================
    CHAT API
