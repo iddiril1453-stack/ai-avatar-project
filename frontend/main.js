@@ -91,14 +91,14 @@ loader.load('./model.glb', (gltf) => {
   });
 
   // MODEL SCALE
-model.scale.set(2.0, 2.0, 2.0);
+model.scale.set(1, 1, 1);
 model.position.set(0, 0, 0);
-model.rotation.y = -1.55;
+model.rotation.set(0, 0, 0);
 
 wrapper.position.set(0, 0, 0);
 
   // SCENE CENTER FIX
-wrapper.position.set(0, 0, 0);
+
   scene.add(wrapper);
 scene.add(new THREE.AxesHelper(5));
   characterModel = wrapper;
