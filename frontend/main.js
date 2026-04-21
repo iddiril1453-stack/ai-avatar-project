@@ -2,6 +2,8 @@ import * as THREE from './libs/three.module.js';
 import { GLTFLoader } from './libs/GLTFLoader.js';
 import { OrbitControls } from './libs/OrbitControls.js';
 import { AnimationBrain } from './animation/animationBrain.js';
+import { BlinkSystem } from './animation/blinkSystem.js';
+
 /* =========================
    STATE
 ========================= */
@@ -20,6 +22,7 @@ let smoothTarget = new THREE.Vector3();
 
 let clock = new THREE.Clock();
 let brain;
+let blinkSystem;
 /* =========================
    SCENE
 ========================= */
@@ -109,6 +112,7 @@ scene.add(wrapper);
   characterModel = wrapper;
 
 brain = new AnimationBrain(characterModel);
+blinkSystem = new BlinkSystem(characterModel);
 
   // LOOK TARGET
   target.set(0, 1.6, 2);
@@ -140,17 +144,40 @@ function animateCharacter() {
 
   head.lookAt(smoothTarget);
 }
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta = clock.getDelta();
+
+  animateCharacter(delta);
+
+  if (blinkSystem) {
+    blinkSystem.update(delta);
+  }
+
+  renderer.render(scene, camera);
+}
 
 /* =========================
    MAIN LOOP
 ========================= */
 
-function animate() {
-  requestAnimationFrame(animate);
+function animateCharacter(delta) {
+  if (!characterModel || !head || !brain) return;
 
-  animateCharacter();
+  brain.update(delta, mouse, isTalking);
 
-  renderer.render(scene, camera);
+  const t = clock.getElapsedTime();
+
+  target.set(mouse.x * 1.5, 1.6 + mouse.y * 0.5, 2);
+
+  if (isTalking) {
+    target.y += Math.sin(t * 10) * 0.02;
+  }
+
+  smoothTarget.lerp(target, 0.05);
+
+  head.lookAt(smoothTarget);
 }
 
 animate();
