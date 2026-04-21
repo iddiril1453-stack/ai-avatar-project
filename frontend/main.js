@@ -107,7 +107,7 @@ loader.load('./model.glb', (gltf) => {
 });
 
 /* =========================
-   ANIMATION CHARACTER
+   CHARACTER LOGIC
 ========================= */
 
 function animateCharacter(delta) {
