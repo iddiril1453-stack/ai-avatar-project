@@ -34,8 +34,8 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.set(0, 1.6, 3.5);
-camera.lookAt(0, 1.2, 0);
+camera.position.set(0, 1.5, 3.2);
+camera.lookAt(0, 1.4, 0);
 
 /* =========================
    RENDERER
@@ -104,7 +104,7 @@ wrapper.position.set(0, 0.4, 0);
 scene.add(wrapper);
 
   // DEBUG AXES
-  scene.add(new THREE.AxesHelper(5));
+
 
   characterModel = wrapper;
 
