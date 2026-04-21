@@ -91,17 +91,17 @@ loader.load('./model.glb', (gltf) => {
   });
 
   // MODEL TRANSFORM
-  model.scale.set(1, 1, 1);
-  model.position.set(0, 0, 0);
-  model.rotation.set(0, 0, 0);
+ model.scale.set(1.8, 1.8, 1.8);
 
-  // 🔥 KRİTİK: MODELİ WRAPPER'A EKLE
-  wrapper.add(model);
+model.position.set(0, 0, 0);
 
-  // SCENE CENTER
-  wrapper.position.set(0, 0, 0);
+model.rotation.y = Math.PI;
 
-  scene.add(wrapper);
+wrapper.add(model);
+
+wrapper.position.set(0, 0.4, 0);
+
+scene.add(wrapper);
 
   // DEBUG AXES
   scene.add(new THREE.AxesHelper(5));
