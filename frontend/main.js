@@ -1,4 +1,4 @@
-import * as THREE from './libs/three.module.js'; 
+import * as THREE from './libs/three.module.js';
 import { GLTFLoader } from './libs/GLTFLoader.js';
 import { OrbitControls } from './libs/OrbitControls.js';
 import { AnimationBrain } from './animation/animationBrain.js';
@@ -13,7 +13,6 @@ let characterModel;
 
 let isThinking = false;
 let isTalking = false;
-let currentEmotion = "neutral";
 
 let mouse = { x: 0, y: 0 };
 
@@ -21,8 +20,10 @@ let target = new THREE.Vector3();
 let smoothTarget = new THREE.Vector3();
 
 let clock = new THREE.Clock();
+
 let brain;
 let blinkSystem;
+
 /* =========================
    SCENE
 ========================= */
@@ -46,7 +47,6 @@ camera.lookAt(0, 1.4, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(1);
 document.body.appendChild(renderer.domElement);
 
 /* =========================
@@ -70,65 +70,48 @@ controls.update();
 const loader = new GLTFLoader();
 
 loader.load('./model.glb', (gltf) => {
-  console.log("MODEL LOADED ✅");
 
   const wrapper = new THREE.Group();
   const model = gltf.scene;
 
-  // HEAD + ARM DETECT
   model.traverse((child) => {
-    console.log("NODE:", child.name);
-
     const name = child.name?.toLowerCase() || "";
 
-    // head detect
     if (name.includes("head")) {
       head = child;
-      console.log("HEAD FOUND ✅", child.name);
     }
 
-    // arm relax (T-pose kırma)
     if (name.includes("arm")) {
       child.rotation.z = -0.3;
     }
   });
 
-  // MODEL TRANSFORM
-model.scale.set(2.1, 2.1, 2.1);
+  model.scale.set(2.1, 2.1, 2.1);
+  model.rotation.y = -Math.PI / 2;
 
-model.position.set(0, 0, 0);
+  wrapper.add(model);
+  wrapper.position.set(0, 0.4, 0);
 
-model.rotation.y = -Math.PI / 2;
-
-wrapper.add(model);
-
-wrapper.position.set(0, 0.4, 0);
-
-scene.add(wrapper);
-
-  // DEBUG AXES
-
+  scene.add(wrapper);
 
   characterModel = wrapper;
 
-brain = new AnimationBrain(characterModel);
-blinkSystem = new BlinkSystem(characterModel);
+  // 🧠 SYSTEM INIT
+  brain = new AnimationBrain(characterModel);
+  blinkSystem = new BlinkSystem(characterModel);
 
-  // LOOK TARGET
   target.set(0, 1.6, 2);
   smoothTarget.copy(target);
 
-  console.log("MODEL READY 🚀");
+  animate();
 });
 
 /* =========================
-   CHARACTER LOOK SYSTEM
+   ANIMATION CHARACTER
 ========================= */
 
-function animateCharacter() {
+function animateCharacter(delta) {
   if (!characterModel || !head || !brain) return;
-
-  const delta = clock.getDelta();
 
   brain.update(delta, mouse, isTalking);
 
@@ -144,6 +127,11 @@ function animateCharacter() {
 
   head.lookAt(smoothTarget);
 }
+
+/* =========================
+   MAIN LOOP
+========================= */
+
 function animate() {
   requestAnimationFrame(animate);
 
