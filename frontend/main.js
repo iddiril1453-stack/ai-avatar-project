@@ -163,6 +163,38 @@ async function sendMessage() {
   input.value = "";
 }
 
+async function speak(text) {
+  try {
+    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+
+    if (!res.ok) {
+      console.error("TTS ERROR STATUS:", res.status);
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    const audio = new Audio(url);
+
+    isTalking = true;
+
+    audio.play();
+
+    audio.onended = () => {
+      isTalking = false;
+    };
+
+  } catch (err) {
+    console.error("TTS ERROR:", err);
+  }
+}
+
+
 /* =========================
    UI EVENTS
 ========================= */
