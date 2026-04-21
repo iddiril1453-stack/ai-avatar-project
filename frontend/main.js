@@ -3,6 +3,7 @@ import { GLTFLoader } from './libs/GLTFLoader.js';
 import { OrbitControls } from './libs/OrbitControls.js';
 import { AnimationBrain } from './animation/animationBrain.js';
 import { BlinkSystem } from './animation/blinkSystem.js';
+import { AvatarBehaviorEngine } from "./avatarBehaviorEngine.js";
 
 let head;
 let characterModel;
@@ -20,11 +21,24 @@ let clock = new THREE.Clock();
 let brain;
 let blinkSystem;
 
-/* SCENE */
+/* =========================
+   BEHAVIOR ENGINE
+========================= */
+const behavior = new AvatarBehaviorEngine();
+
+/* =========================
+   SCENE
+========================= */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+
 camera.position.set(0, 1.5, 3.2);
 camera.lookAt(0, 1.4, 0);
 
@@ -41,7 +55,9 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 1.2, 0);
 controls.update();
 
-/* MODEL */
+/* =========================
+   MODEL LOAD
+========================= */
 const loader = new GLTFLoader();
 
 loader.load('./model.glb', (gltf) => {
@@ -80,7 +96,22 @@ loader.load('./model.glb', (gltf) => {
   animate();
 });
 
-/* CHARACTER LOGIC */
+/* =========================
+   STATE BRIDGE (CRITICAL)
+========================= */
+behavior.bind({
+  onStateChange: (state, intensity) => {
+
+    if (brain) brain.setState(state, intensity);
+
+    isTalking = state === "talking";
+    isThinking = state === "thinking";
+  }
+});
+
+/* =========================
+   CHARACTER LOGIC
+========================= */
 function animateCharacter(delta) {
   if (!characterModel || !head || !brain) return;
 
@@ -99,7 +130,9 @@ function animateCharacter(delta) {
   head.lookAt(smoothTarget);
 }
 
-/* MAIN LOOP */
+/* =========================
+   MAIN LOOP
+========================= */
 function animate() {
   requestAnimationFrame(animate);
 
@@ -114,20 +147,16 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-animate();
-
-
 /* =========================
    CHAT API
 ========================= */
-
 async function sendMessage() {
   const input = document.getElementById("userInput");
   const text = input.value;
 
   if (!text) return;
 
-  isThinking = true;
+  setState("thinking");
 
   try {
     const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
@@ -138,19 +167,12 @@ async function sendMessage() {
       body: JSON.stringify({ message: text })
     });
 
-    // 🔥 DEBUG: STATUS
-    console.log("STATUS:", res.status);
-
-    // 🔥 DEBUG: RAW RESPONSE
     const raw = await res.text();
-    console.log("RAW RESPONSE:", raw);
-
-    // JSON parse (safe)
     const data = JSON.parse(raw);
 
     console.log("BACKEND:", data);
 
-    isThinking = false;
+    setState("idle");
 
     if (data.reply) {
       speak(data.reply);
@@ -158,11 +180,27 @@ async function sendMessage() {
 
   } catch (err) {
     console.error("SEND ERROR:", err);
+    setState("idle");
   }
 
   input.value = "";
 }
 
+/* =========================
+   STATE HELPER (SAFE)
+========================= */
+function setState(state) {
+  if (behavior) {
+    behavior.setState(state);
+  }
+
+  if (state === "talking") isTalking = true;
+  if (state === "idle") isTalking = false;
+}
+
+/* =========================
+   SPEAK (FIXED + SYNC)
+========================= */
 async function speak(text) {
   try {
     const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/tts", {
@@ -181,24 +219,26 @@ async function speak(text) {
 
     const audio = new Audio(url);
 
-    isTalking = true;
-
-    audio.play();
+    audio.onplay = () => {
+      setState("talking");
+      if (behavior) behavior.onSpeechStart();
+    };
 
     audio.onended = () => {
-      isTalking = false;
+      setState("idle");
+      if (behavior) behavior.onSpeechEnd();
     };
+
+    audio.play();
 
   } catch (err) {
     console.error("TTS ERROR:", err);
   }
 }
 
-
 /* =========================
    UI EVENTS
 ========================= */
-
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("sendBtn");
   const input = document.getElementById("userInput");
