@@ -5,6 +5,9 @@ import { AnimationBrain } from './animation/animationBrain.js';
 import { BlinkSystem } from './animation/blinkSystem.js';
 import { AvatarBehaviorEngine } from "./avatarBehaviorEngine.js";
 
+/* =========================
+   CORE STATE
+========================= */
 let head;
 let characterModel;
 
@@ -20,12 +23,21 @@ let clock = new THREE.Clock();
 
 let brain;
 let blinkSystem;
+
 let breathTime = 0;
 
 /* =========================
    BEHAVIOR ENGINE
 ========================= */
 const behavior = new AvatarBehaviorEngine();
+
+/* =========================
+   MOUSE FIX (ADDED)
+========================= */
+window.addEventListener("mousemove", (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+});
 
 /* =========================
    SCENE
@@ -86,6 +98,7 @@ loader.load('./model.glb', (gltf) => {
 
   scene.add(wrapper);
 
+  // 🔥 SAFE FIX (WRAPPER USED)
   characterModel = wrapper;
 
   brain = new AnimationBrain(characterModel);
@@ -98,11 +111,10 @@ loader.load('./model.glb', (gltf) => {
 });
 
 /* =========================
-   STATE BRIDGE (CRITICAL)
+   BEHAVIOR → BRAIN BRIDGE
 ========================= */
 behavior.bind({
   onStateChange: (state, intensity) => {
-
     if (brain) brain.setState(state, intensity);
 
     isTalking = state === "talking";
@@ -111,34 +123,34 @@ behavior.bind({
 });
 
 /* =========================
-   CHARACTER LOGIC
+   CHARACTER UPDATE
 ========================= */
 function animateCharacter(delta) {
   if (!characterModel || !head || !brain) return;
 
+  const t = clock.getElapsedTime();
+
+  // 🧠 brain update (SAFE)
   brain.update(delta, mouse, isTalking);
 
-  if (blinkSystem && characterModel) {
-  blinkSystem.update(delta, isTalking);
+  // 👁 blink (ONLY ONCE)
+  if (blinkSystem) {
+    blinkSystem.update(delta, isTalking);
+  }
 
+  // 🫁 breathing
   breathTime += delta * 2;
 
-if (characterModel && !isTalking) {
-  const breath = Math.sin(breathTime) * 0.003;
+  if (!isTalking) {
+    const breath = Math.sin(breathTime) * 0.003;
+    characterModel.position.y = 0.4 + breath;
 
-  characterModel.position.y = 0.4 + breath;
-}
-if (characterModel && !isTalking) {
-  const t = clock.getElapsedTime();
+    // 🎭 idle motion
+    characterModel.rotation.y += Math.sin(t * 0.3) * 0.0005;
+    characterModel.rotation.x = Math.sin(t * 0.5) * 0.002;
+  }
 
-  characterModel.rotation.y += Math.sin(t * 0.3) * 0.0005;
-  characterModel.rotation.x = Math.sin(t * 0.5) * 0.002;
-}
-
-}
-
-  const t = clock.getElapsedTime();
-
+  // 🎯 look target
   target.set(mouse.x * 1.5, 1.6 + mouse.y * 0.5, 2);
 
   if (isTalking) {
@@ -147,12 +159,11 @@ if (characterModel && !isTalking) {
 
   smoothTarget.lerp(target, 0.05);
 
+  // 👁 head look
   if (head) {
-  head.lookAt(smoothTarget);
-
-  // micro eye stability
-  head.rotation.x += Math.sin(clock.getElapsedTime() * 0.5) * 0.002;
-}
+    head.lookAt(smoothTarget);
+    head.rotation.x += Math.sin(t * 0.5) * 0.002;
+  }
 }
 
 /* =========================
@@ -164,10 +175,6 @@ function animate() {
   const delta = clock.getDelta();
 
   animateCharacter(delta);
-
-  if (blinkSystem) {
-    blinkSystem.update(delta);
-  }
 
   renderer.render(scene, camera);
 }
@@ -186,9 +193,7 @@ async function sendMessage() {
   try {
     const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text })
     });
 
@@ -212,19 +217,17 @@ async function sendMessage() {
 }
 
 /* =========================
-   STATE HELPER (SAFE)
+   STATE SYSTEM
 ========================= */
 function setState(state) {
-  if (behavior) {
-    behavior.setState(state);
-  }
+  if (behavior) behavior.setState(state);
 
-  if (state === "talking") isTalking = true;
-  if (state === "idle") isTalking = false;
+  isTalking = state === "talking";
+  isThinking = state === "thinking";
 }
 
 /* =========================
-   SPEAK (FIXED + SYNC)
+   SPEAK
 ========================= */
 async function speak(text) {
   try {
@@ -234,25 +237,15 @@ async function speak(text) {
       body: JSON.stringify({ text })
     });
 
-    if (!res.ok) {
-      console.error("TTS ERROR STATUS:", res.status);
-      return;
-    }
+    if (!res.ok) return;
 
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
 
     const audio = new Audio(url);
 
-    audio.onplay = () => {
-      setState("talking");
-      if (behavior) behavior.onSpeechStart();
-    };
-
-    audio.onended = () => {
-      setState("idle");
-      if (behavior) behavior.onSpeechEnd();
-    };
+    audio.onplay = () => setState("talking");
+    audio.onended = () => setState("idle");
 
     audio.play();
 
@@ -262,7 +255,7 @@ async function speak(text) {
 }
 
 /* =========================
-   UI EVENTS
+   UI
 ========================= */
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("sendBtn");
