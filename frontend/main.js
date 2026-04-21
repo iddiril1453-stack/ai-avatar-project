@@ -4,10 +4,6 @@ import { OrbitControls } from './libs/OrbitControls.js';
 import { AnimationBrain } from './animation/animationBrain.js';
 import { BlinkSystem } from './animation/blinkSystem.js';
 
-/* =========================
-   STATE
-========================= */
-
 let head;
 let characterModel;
 
@@ -24,49 +20,28 @@ let clock = new THREE.Clock();
 let brain;
 let blinkSystem;
 
-/* =========================
-   SCENE
-========================= */
-
+/* SCENE */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.5, 3.2);
 camera.lookAt(0, 1.4, 0);
 
-/* =========================
-   RENDERER
-========================= */
-
+/* RENDERER */
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-/* =========================
-   LIGHT
-========================= */
-
+/* LIGHT */
 scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
 
-/* =========================
-   CONTROLS
-========================= */
-
+/* CONTROLS */
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 1.2, 0);
 controls.update();
 
-/* =========================
-   MODEL
-========================= */
-
+/* MODEL */
 const loader = new GLTFLoader();
 
 loader.load('./model.glb', (gltf) => {
@@ -96,7 +71,6 @@ loader.load('./model.glb', (gltf) => {
 
   characterModel = wrapper;
 
-  // 🧠 SYSTEM INIT
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
@@ -106,50 +80,7 @@ loader.load('./model.glb', (gltf) => {
   animate();
 });
 
-/* =========================
-   CHARACTER LOGIC
-========================= */
-
- {
-  if (!characterModel || !head || !brain) return;
-
-  brain.update(delta, mouse, isTalking);
-
-  const t = clock.getElapsedTime();
-
-  target.set(mouse.x * 1.5, 1.6 + mouse.y * 0.5, 2);
-
-  if (isTalking) {
-    target.y += Math.sin(t * 10) * 0.02;
-  }
-
-  smoothTarget.lerp(target, 0.05);
-
-  head.lookAt(smoothTarget);
-}
-
-/* =========================
-   MAIN LOOP
-========================= */
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  const delta = clock.getDelta();
-
-  animateCharacter(delta);
-
-  if (blinkSystem) {
-    blinkSystem.update(delta);
-  }
-
-  renderer.render(scene, camera);
-}
-
-/* =========================
-   MAIN LOOP
-========================= */
-
+/* CHARACTER LOGIC */
 function animateCharacter(delta) {
   if (!characterModel || !head || !brain) return;
 
@@ -166,6 +97,21 @@ function animateCharacter(delta) {
   smoothTarget.lerp(target, 0.05);
 
   head.lookAt(smoothTarget);
+}
+
+/* MAIN LOOP */
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta = clock.getDelta();
+
+  animateCharacter(delta);
+
+  if (blinkSystem) {
+    blinkSystem.update(delta);
+  }
+
+  renderer.render(scene, camera);
 }
 
 animate();
@@ -192,48 +138,29 @@ async function sendMessage() {
       body: JSON.stringify({ message: text })
     });
 
-    const data = await res.json();
+    // 🔥 DEBUG: STATUS
+    console.log("STATUS:", res.status);
+
+    // 🔥 DEBUG: RAW RESPONSE
+    const raw = await res.text();
+    console.log("RAW RESPONSE:", raw);
+
+    // JSON parse (safe)
+    const data = JSON.parse(raw);
 
     console.log("BACKEND:", data);
 
     isThinking = false;
-    speak(data.reply);
+
+    if (data.reply) {
+      speak(data.reply);
+    }
 
   } catch (err) {
-    console.error(err);
+    console.error("SEND ERROR:", err);
   }
 
   input.value = "";
-}
-
-/* =========================
-   SPEECH
-========================= */
-
-async function speak(text) {
-  try {
-    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
-    });
-
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-
-    const audio = new Audio(url);
-
-    isTalking = true;
-
-    audio.play();
-
-    audio.onended = () => {
-      isTalking = false;
-    };
-
-  } catch (err) {
-    console.error("TTS error:", err);
-  }
 }
 
 /* =========================
