@@ -91,11 +91,11 @@ loader.load('./model.glb', (gltf) => {
   });
 
   // MODEL TRANSFORM
- model.scale.set(1.8, 1.8, 1.8);
+model.scale.set(2.1, 2.1, 2.1);
 
 model.position.set(0, 0, 0);
 
-model.rotation.y = Math.PI;
+model.rotation.y = -Math.PI / 2;
 
 wrapper.add(model);
 
