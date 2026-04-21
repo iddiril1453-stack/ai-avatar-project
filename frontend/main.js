@@ -110,7 +110,7 @@ loader.load('./model.glb', (gltf) => {
    CHARACTER LOGIC
 ========================= */
 
-function animateCharacter(delta) {
+ {
   if (!characterModel || !head || !brain) return;
 
   brain.update(delta, mouse, isTalking);
