@@ -20,6 +20,7 @@ let clock = new THREE.Clock();
 
 let brain;
 let blinkSystem;
+let breathTime = 0;
 
 /* =========================
    BEHAVIOR ENGINE
@@ -117,6 +118,25 @@ function animateCharacter(delta) {
 
   brain.update(delta, mouse, isTalking);
 
+  if (blinkSystem && characterModel) {
+  blinkSystem.update(delta, isTalking);
+
+  breathTime += delta * 2;
+
+if (characterModel && !isTalking) {
+  const breath = Math.sin(breathTime) * 0.003;
+
+  characterModel.position.y = 0.4 + breath;
+}
+if (characterModel && !isTalking) {
+  const t = clock.getElapsedTime();
+
+  characterModel.rotation.y += Math.sin(t * 0.3) * 0.0005;
+  characterModel.rotation.x = Math.sin(t * 0.5) * 0.002;
+}
+
+}
+
   const t = clock.getElapsedTime();
 
   target.set(mouse.x * 1.5, 1.6 + mouse.y * 0.5, 2);
@@ -127,7 +147,12 @@ function animateCharacter(delta) {
 
   smoothTarget.lerp(target, 0.05);
 
+  if (head) {
   head.lookAt(smoothTarget);
+
+  // micro eye stability
+  head.rotation.x += Math.sin(clock.getElapsedTime() * 0.5) * 0.002;
+}
 }
 
 /* =========================
