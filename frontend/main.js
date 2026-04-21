@@ -32,7 +32,7 @@ let breathTime = 0;
 const behavior = new AvatarBehaviorEngine();
 
 /* =========================
-   MOUSE FIX (ADDED)
+   MOUSE TRACKING
 ========================= */
 window.addEventListener("mousemove", (e) => {
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -45,6 +45,7 @@ window.addEventListener("mousemove", (e) => {
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 
+/* CAMERA */
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -56,15 +57,28 @@ camera.position.set(0, 1.5, 3.2);
 camera.lookAt(0, 1.4, 0);
 
 /* RENDERER */
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({
+  antialias: true
+});
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 /* LIGHT */
-scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
+const hemiLight = new THREE.HemisphereLight(
+  0xffffff,
+  0x444444,
+  2
+);
+
+scene.add(hemiLight);
 
 /* CONTROLS */
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(
+  camera,
+  renderer.domElement
+);
+
 controls.target.set(0, 1.2, 0);
 controls.update();
 
@@ -73,23 +87,32 @@ controls.update();
 ========================= */
 const loader = new GLTFLoader();
 
-loader.load('./model.glb', (gltf) => {
-
+loader.load("./model.glb", (gltf) => {
   const wrapper = new THREE.Group();
   const model = gltf.scene;
 
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
 
-    if (name.includes("head")) {
+    console.log("NODE:", child.name);
+
+    /* HEAD DETECTION */
+    if (
+      name.includes("head") ||
+      name.includes("face") ||
+      name.includes("neck")
+    ) {
       head = child;
+      console.log("HEAD FOUND:", child.name);
     }
 
+    /* ARM FIX */
     if (name.includes("arm")) {
       child.rotation.z = -0.3;
     }
   });
 
+  /* MODEL TRANSFORM */
   model.scale.set(2.1, 2.1, 2.1);
   model.rotation.y = -Math.PI / 2;
 
@@ -98,9 +121,15 @@ loader.load('./model.glb', (gltf) => {
 
   scene.add(wrapper);
 
-  // 🔥 SAFE FIX (WRAPPER USED)
-  characterModel = wrapper;
+  /* IMPORTANT:
+     wrapper değil → model
+  */
+  characterModel = model;
 
+  console.log("CHARACTER MODEL:", characterModel);
+  console.log("HEAD:", head);
+
+  /* SYSTEMS */
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
@@ -111,11 +140,13 @@ loader.load('./model.glb', (gltf) => {
 });
 
 /* =========================
-   BEHAVIOR → BRAIN BRIDGE
+   STATE BRIDGE
 ========================= */
 behavior.bind({
   onStateChange: (state, intensity) => {
-    if (brain) brain.setState(state, intensity);
+    if (brain) {
+      brain.setState(state, intensity);
+    }
 
     isTalking = state === "talking";
     isThinking = state === "thinking";
@@ -123,46 +154,73 @@ behavior.bind({
 });
 
 /* =========================
+   SAFE STATE SETTER
+========================= */
+function setState(state) {
+  if (behavior) {
+    behavior.setState(state);
+  }
+
+  isTalking = state === "talking";
+  isThinking = state === "thinking";
+}
+
+/* =========================
    CHARACTER UPDATE
 ========================= */
 function animateCharacter(delta) {
-  if (!characterModel || !head || !brain) return;
+  if (!characterModel || !brain) return;
 
   const t = clock.getElapsedTime();
 
-  // 🧠 brain update (SAFE)
-  brain.update(delta, mouse, isTalking);
+  /* DEBUG TEST:
+     model kesin hareket etmeli
+  */
+  characterModel.rotation.y += 0.002;
 
-  // 👁 blink (ONLY ONCE)
+  /* BRAIN UPDATE */
+  brain.update(
+    delta,
+    mouse,
+    behavior.state === "talking"
+  );
+
+  /* BLINK */
   if (blinkSystem) {
     blinkSystem.update(delta, isTalking);
   }
 
-  // 🫁 breathing
+  /* BREATHING */
   breathTime += delta * 2;
 
   if (!isTalking) {
-    const breath = Math.sin(breathTime) * 0.003;
-    characterModel.position.y = 0.4 + breath;
+    const breath =
+      Math.sin(breathTime) * 0.003;
 
-    // 🎭 idle motion
-    characterModel.rotation.y += Math.sin(t * 0.3) * 0.0005;
-    characterModel.rotation.x = Math.sin(t * 0.5) * 0.002;
+    characterModel.position.y = breath;
+
+    /* IDLE MICRO MOTION */
+    characterModel.rotation.x =
+      Math.sin(t * 0.5) * 0.002;
   }
 
-  // 🎯 look target
-  target.set(mouse.x * 1.5, 1.6 + mouse.y * 0.5, 2);
+  /* LOOK TARGET */
+  target.set(
+    mouse.x * 1.5,
+    1.6 + mouse.y * 0.5,
+    2
+  );
 
   if (isTalking) {
-    target.y += Math.sin(t * 10) * 0.02;
+    target.y +=
+      Math.sin(t * 10) * 0.02;
   }
 
   smoothTarget.lerp(target, 0.05);
 
-  // 👁 head look
+  /* HEAD LOOK */
   if (head) {
     head.lookAt(smoothTarget);
-    head.rotation.x += Math.sin(t * 0.5) * 0.002;
   }
 }
 
@@ -183,7 +241,9 @@ function animate() {
    CHAT API
 ========================= */
 async function sendMessage() {
-  const input = document.getElementById("userInput");
+  const input =
+    document.getElementById("userInput");
+
   const text = input.value;
 
   if (!text) return;
@@ -191,11 +251,18 @@ async function sendMessage() {
   setState("thinking");
 
   try {
-    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
+    const res = await fetch(
+      "https://ai-avatar-project-d2r9.onrender.com/chat",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: text
+        })
+      }
+    );
 
     const raw = await res.text();
     const data = JSON.parse(raw);
@@ -209,7 +276,11 @@ async function sendMessage() {
     }
 
   } catch (err) {
-    console.error("SEND ERROR:", err);
+    console.error(
+      "SEND ERROR:",
+      err
+    );
+
     setState("idle");
   }
 
@@ -217,55 +288,81 @@ async function sendMessage() {
 }
 
 /* =========================
-   STATE SYSTEM
-========================= */
-function setState(state) {
-  if (behavior) behavior.setState(state);
-
-  isTalking = state === "talking";
-  isThinking = state === "thinking";
-}
-
-/* =========================
    SPEAK
 ========================= */
 async function speak(text) {
   try {
-    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
-    });
+    const res = await fetch(
+      "https://ai-avatar-project-d2r9.onrender.com/tts",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          text
+        })
+      }
+    );
 
-    if (!res.ok) return;
+    if (!res.ok) {
+      console.error(
+        "TTS ERROR STATUS:",
+        res.status
+      );
+      return;
+    }
 
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
+    const url =
+      URL.createObjectURL(blob);
 
     const audio = new Audio(url);
 
-    audio.onplay = () => setState("talking");
-    audio.onended = () => setState("idle");
+    audio.onplay = () => {
+      setState("talking");
+    };
+
+    audio.onended = () => {
+      setState("idle");
+    };
 
     audio.play();
 
   } catch (err) {
-    console.error("TTS ERROR:", err);
+    console.error(
+      "TTS ERROR:",
+      err
+    );
   }
 }
 
 /* =========================
-   UI
+   UI EVENTS
 ========================= */
-window.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("sendBtn");
-  const input = document.getElementById("userInput");
+window.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    const btn =
+      document.getElementById("sendBtn");
 
-  if (btn && input) {
-    btn.addEventListener("click", sendMessage);
+    const input =
+      document.getElementById("userInput");
 
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
+    if (btn && input) {
+      btn.addEventListener(
+        "click",
+        sendMessage
+      );
+
+      input.addEventListener(
+        "keydown",
+        (e) => {
+          if (e.key === "Enter") {
+            sendMessage();
+          }
+        }
+      );
+    }
   }
-});
+);
