@@ -93,11 +93,17 @@ loader.load("./model.glb?v=99", (gltf) => {
   const wrapper = new THREE.Group();
   const model = gltf.scene;
 
+  let head = null;
+
+  /* =========================
+     NODE DETECTION
+  ========================= */
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
 
     console.log("NODE:", child.name);
 
+    // HEAD DETECTION
     if (
       name.includes("head") ||
       name.includes("face") ||
@@ -107,31 +113,53 @@ loader.load("./model.glb?v=99", (gltf) => {
       console.log("HEAD FOUND:", child.name);
     }
 
+    // ARM FIX
     if (name.includes("arm")) {
       child.rotation.z = -0.3;
     }
   });
 
-  /* ✅ MODEL SCALE */
+  /* =========================
+     MODEL TRANSFORM (FIXED)
+  ========================= */
+
   model.scale.set(2.1, 2.1, 2.1);
 
-  /* ❌ BURASI KALDIRILDI:
-     model.rotation.y = -Math.PI / 2;
-  */
+  // 🔥 CRITICAL FIX: model orientation
+  // (kafa arkaya bakma sorunu burada çözülür)
+  model.rotation.set(0, Math.PI, 0);
+
+  /* =========================
+     WRAPPER SETUP
+  ========================= */
 
   wrapper.add(model);
-
-  /* ✅ ROTATION BURADA */
-  wrapper.rotation.y = -Math.PI / 2;
-
   wrapper.position.set(0, 0.4, 0);
+
+  // ❌ wrapper rotation KULLANMIYORUZ (çakışma sebebi)
+  wrapper.rotation.set(0, 0, 0);
 
   scene.add(wrapper);
 
+  /* =========================
+     GLOBAL REFERENCE
+  ========================= */
+
   characterModel = model;
+
+  console.log("CHARACTER MODEL:", characterModel);
+  console.log("HEAD:", head);
+
+  /* =========================
+     AI SYSTEMS
+  ========================= */
 
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
+
+  /* =========================
+     ANIMATION MIXER
+  ========================= */
 
   if (gltf.animations && gltf.animations.length > 0) {
     mixer = new THREE.AnimationMixer(model);
@@ -140,7 +168,13 @@ loader.load("./model.glb?v=99", (gltf) => {
     idleAction.play();
 
     console.log("IDLE ANIMATION STARTED ✅");
+  } else {
+    console.log("NO EMBEDDED ANIMATION FOUND ❌");
   }
+
+  /* =========================
+     CAMERA TARGET
+  ========================= */
 
   target.set(0, 1.6, 2);
   smoothTarget.copy(target);
