@@ -88,7 +88,7 @@ controls.update();
 ========================= */
 const loader = new GLTFLoader();
 
-loader.load("./model.glb?v=2", (gltf) => {
+loader.load("./model.glb?v=99", (gltf) => {
   const wrapper = new THREE.Group();
   const model = gltf.scene;
 
