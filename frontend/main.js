@@ -91,6 +91,8 @@ const loader = new GLTFLoader();
 
 loader.load("./model.glb?v=99", (gltf) => {
 
+  console.log("MODEL VERSION 999 LOADED");
+
   const model = gltf.scene;
   const modelWrapper = new THREE.Group();
 
