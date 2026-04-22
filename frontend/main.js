@@ -97,7 +97,6 @@ loader.load("./model.glb?v=99", (gltf) => {
 
     console.log("NODE:", child.name);
 
-    /* HEAD DETECTION */
     if (
       name.includes("head") ||
       name.includes("face") ||
@@ -107,53 +106,40 @@ loader.load("./model.glb?v=99", (gltf) => {
       console.log("HEAD FOUND:", child.name);
     }
 
-    /* ARM FIX */
     if (name.includes("arm")) {
       child.rotation.z = -0.3;
     }
   });
 
-  /* MODEL TRANSFORM */
+  /* ✅ MODEL SCALE */
   model.scale.set(2.1, 2.1, 2.1);
-  model.rotation.y = -Math.PI / 2;
+
+  /* ❌ BURASI KALDIRILDI:
+     model.rotation.y = -Math.PI / 2;
+  */
 
   wrapper.add(model);
+
+  /* ✅ ROTATION BURADA */
+  wrapper.rotation.y = -Math.PI / 2;
+
   wrapper.position.set(0, 0.4, 0);
 
   scene.add(wrapper);
 
-  /* IMPORTANT:
-     wrapper değil → model
-  */
   characterModel = model;
 
-  console.log("CHARACTER MODEL:", characterModel);
-  console.log("HEAD:", head);
-
-  /* SYSTEMS */
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
-  /* =========================
-   ANIMATION MIXER (CRITICAL)
-========================= */
-if (gltf.animations && gltf.animations.length > 0) {
-  mixer = new THREE.AnimationMixer(model);
+  if (gltf.animations && gltf.animations.length > 0) {
+    mixer = new THREE.AnimationMixer(model);
 
-  const idleAction = mixer.clipAction(
-    gltf.animations[0]
-  );
+    const idleAction = mixer.clipAction(gltf.animations[0]);
+    idleAction.play();
 
-  idleAction.play();
-
-  console.log(
-    "IDLE ANIMATION STARTED ✅"
-  );
-} else {
-  console.log(
-    "NO EMBEDDED ANIMATION FOUND ❌"
-  );
-}
+    console.log("IDLE ANIMATION STARTED ✅");
+  }
 
   target.set(0, 1.6, 2);
   smoothTarget.copy(target);
