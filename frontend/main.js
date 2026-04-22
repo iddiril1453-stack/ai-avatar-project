@@ -90,10 +90,15 @@ controls.update();
 const loader = new GLTFLoader();
 
 loader.load("./model.glb?v=99", (gltf) => {
-  const wrapper = new THREE.Group();
+
   const model = gltf.scene;
+  const modelWrapper = new THREE.Group();
 
   let head = null;
+
+  /* =========================
+     NODE DETECTION
+  ========================= */
 
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
@@ -108,30 +113,34 @@ loader.load("./model.glb?v=99", (gltf) => {
   });
 
   /* =========================
-     MODEL TRANSFORM (FINAL FIX)
+     MODEL TRANSFORM
   ========================= */
 
   model.scale.set(2.1, 2.1, 2.1);
 
-  // 🔥 TEK DOĞRU ROTATION
-  model.rotation.set(-Math.PI / 2, Math.PI, 0);
-
   /* =========================
-     WRAPPER
+     WRAPPER SYSTEM (ONLY ONE)
   ========================= */
 
-  wrapper.add(model);
-  wrapper.position.set(0, 0.4, 0);
-  wrapper.rotation.set(0, 0, 0);
+  modelWrapper.add(model);
+  scene.add(modelWrapper);
 
-  scene.add(wrapper);
+  modelWrapper.rotation.set(0, Math.PI, 0);
+  modelWrapper.rotation.x = Math.PI / 6;
 
-  characterModel = model;
+  /* =========================
+     GLOBAL REFERENCES
+  ========================= */
+
+  characterModel = modelWrapper;
 
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
-  /* ANIMATION */
+  /* =========================
+     ANIMATION
+  ========================= */
+
   if (gltf.animations?.length) {
     mixer = new THREE.AnimationMixer(model);
     mixer.clipAction(gltf.animations[0]).play();
