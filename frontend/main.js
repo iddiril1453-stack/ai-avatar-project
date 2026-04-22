@@ -112,9 +112,10 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   model.scale.set(2.1, 2.1, 2.1);
 
 model.rotation.set(
-  -Math.PI / 2,
+  -Math.PI / 4, // 45°
   Math.PI,
   0
+
 );
 
   const modelWrapper = new THREE.Group();
