@@ -116,7 +116,7 @@ modelWrapper.position.set(0, 0.4, 0);
 
 /* FINAL AXIS FIX */
 modelWrapper.rotation.y = -Math.PI / 2;   // sağa dönüklüğü düzelt
-modelWrapper.rotation.x = 0.5;            // eğimi sıfırla
+modelWrapper.rotation.x = 0.9;            // eğimi sıfırla
 modelWrapper.rotation.z = 0.0;
 
 modelWrapper.add(model);
