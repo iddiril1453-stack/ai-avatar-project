@@ -136,10 +136,12 @@ scene.add(axes);
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
-  if (gltf.animations?.length) {
-    mixer = new THREE.AnimationMixer(model);
-    mixer.clipAction(gltf.animations[0]).play();
-  }
+ /*
+if (gltf.animations?.length) {
+  mixer = new THREE.AnimationMixer(model);
+  mixer.clipAction(gltf.animations[0]).play();
+}
+*/
 
   target.set(0, 1.6, 2);
   smoothTarget.copy(target);
