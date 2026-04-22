@@ -23,6 +23,7 @@ let clock = new THREE.Clock();
 
 let brain;
 let blinkSystem;
+let mixer;
 
 let breathTime = 0;
 
@@ -133,6 +134,27 @@ loader.load("./model.glb", (gltf) => {
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
+  /* =========================
+   ANIMATION MIXER (CRITICAL)
+========================= */
+if (gltf.animations && gltf.animations.length > 0) {
+  mixer = new THREE.AnimationMixer(model);
+
+  const idleAction = mixer.clipAction(
+    gltf.animations[0]
+  );
+
+  idleAction.play();
+
+  console.log(
+    "IDLE ANIMATION STARTED ✅"
+  );
+} else {
+  console.log(
+    "NO EMBEDDED ANIMATION FOUND ❌"
+  );
+}
+
   target.set(0, 1.6, 2);
   smoothTarget.copy(target);
 
@@ -231,6 +253,13 @@ function animate() {
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
+
+  /* 🔥 CRITICAL FIX
+     animation clip frame update
+  */
+  if (mixer) {
+    mixer.update(delta);
+  }
 
   animateCharacter(delta);
 
