@@ -118,7 +118,7 @@ modelWrapper.position.set(0, 0.4, 0);
 /* FINAL AXIS FIX */
 modelWrapper.rotation.y = -Math.PI / 2;
 modelWrapper.rotation.x = 0;
-modelWrapper.rotation.z = -0.8;
+modelWrapper.rotation.z = -0.25;
 
 modelWrapper.add(model);
 scene.add(modelWrapper);
