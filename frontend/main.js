@@ -112,7 +112,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   model.scale.set(2.1, 2.1, 2.1);
 
 model.rotation.set(
-  -Math.PI / 4, // 45°
+  -Math.PI / 3, // 45°
   Math.PI,
   0
 
