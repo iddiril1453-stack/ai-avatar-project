@@ -119,12 +119,15 @@ loader.load("./model.glb?v=99", (gltf) => {
     }
   });
 
-  /* =========================
-     MODEL TRANSFORM (FIXED)
-  ========================= */
+ /* MODEL TRANSFORM */
+model.scale.set(2.1, 2.1, 2.1);
 
-  model.scale.set(2.1, 2.1, 2.1);
-
+// 🔥 FULL ORIENTATION FIX
+model.rotation.set(
+  -Math.PI / 2,
+  Math.PI,
+  0
+);
   // 🔥 CRITICAL FIX: model orientation
   // (kafa arkaya bakma sorunu burada çözülür)
   model.rotation.set(0, Math.PI, 0);
