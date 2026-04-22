@@ -109,15 +109,17 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     }
   });
 
-  model.scale.set(2.1, 2.1, 2.1);
+ model.scale.set(2.1, 2.1, 2.1);
 
-model.rotation.set(0, Math.PI / 4, -Math.PI / -4);
+const modelWrapper = new THREE.Group();
+modelWrapper.position.set(0, 0.4, 0);
 
-  const modelWrapper = new THREE.Group();
-  modelWrapper.position.set(0, 0.4, 0);
+/* SADECE WRAPPER ROTATION */
+modelWrapper.rotation.y = Math.PI;      // yüzü sana çevir
+modelWrapper.rotation.x = -0.9;         // öne eğikliği düzelt (~52°)
 
-  modelWrapper.add(model);
-  scene.add(modelWrapper);
+modelWrapper.add(model);
+scene.add(modelWrapper);
 
   const axes = new THREE.AxesHelper(3);
 axes.position.set(0, 1.2, 0);
