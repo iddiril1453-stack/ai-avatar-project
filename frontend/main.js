@@ -118,6 +118,10 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   modelWrapper.add(model);
   scene.add(modelWrapper);
 
+  const axes = new THREE.AxesHelper(3);
+axes.position.set(0, 1.2, 0);
+scene.add(axes);
+
   /* =========================
      GLOBAL REFERENCES (DOĞRU YER)
   ========================= */
