@@ -114,9 +114,10 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 const modelWrapper = new THREE.Group();
 modelWrapper.position.set(0, 0.4, 0);
 
-/* SADECE WRAPPER ROTATION */
-modelWrapper.rotation.y = Math.PI;      // yüzü sana çevir
-modelWrapper.rotation.x = -0.9;         // öne eğikliği düzelt (~52°)
+/* FINAL AXIS FIX */
+modelWrapper.rotation.y = -Math.PI / 2;   // sağa dönüklüğü düzelt
+modelWrapper.rotation.x = 0.0;            // eğimi sıfırla
+modelWrapper.rotation.z = 0.0;
 
 modelWrapper.add(model);
 scene.add(modelWrapper);
