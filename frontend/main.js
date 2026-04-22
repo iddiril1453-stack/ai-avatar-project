@@ -89,18 +89,13 @@ controls.update();
 ========================= */
 const loader = new GLTFLoader();
 
-loader.load("./model.glb?v=99", (gltf) => {
+loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   console.log("MODEL VERSION 999 LOADED");
 
   const model = gltf.scene;
-  const modelWrapper = new THREE.Group();
 
   let head = null;
-
-  /* =========================
-     NODE DETECTION
-  ========================= */
 
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
@@ -114,34 +109,23 @@ loader.load("./model.glb?v=99", (gltf) => {
     }
   });
 
-  /* =========================
-     MODEL TRANSFORM
-  ========================= */
-
   model.scale.set(2.1, 2.1, 2.1);
+  model.rotation.set(0, Math.PI, 0);
 
-  /* =========================
-     WRAPPER SYSTEM (ONLY ONE)
-  ========================= */
+  const modelWrapper = new THREE.Group();
+  modelWrapper.position.set(0, 0.4, 0);
 
   modelWrapper.add(model);
   scene.add(modelWrapper);
 
-  modelWrapper.rotation.set(0, Math.PI, 0);
-  modelWrapper.rotation.x = Math.PI / 6;
-
   /* =========================
-     GLOBAL REFERENCES
+     GLOBAL REFERENCES (DOĞRU YER)
   ========================= */
 
   characterModel = modelWrapper;
 
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
-
-  /* =========================
-     ANIMATION
-  ========================= */
 
   if (gltf.animations?.length) {
     mixer = new THREE.AnimationMixer(model);
