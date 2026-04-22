@@ -27,6 +27,7 @@ let mixer;
 
 let breathTime = 0;
 
+console.log("TEST CHANGE");
 /* =========================
    BEHAVIOR ENGINE
 ========================= */
