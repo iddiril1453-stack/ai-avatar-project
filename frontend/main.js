@@ -110,16 +110,15 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   });
 
  model.scale.set(2.1, 2.1, 2.1);
-
- model.rotation.x = -1.2;
+ 
 
 const modelWrapper = new THREE.Group();
 modelWrapper.position.set(0, 0.4, 0);
 
 /* FINAL AXIS FIX */
-modelWrapper.rotation.y = -Math.PI / 2;   // sağa dönüklüğü düzelt
-modelWrapper.rotation.x = 0.9;            // eğimi sıfırla
-modelWrapper.rotation.z = 0.0;
+modelWrapper.rotation.y = -Math.PI / 2;
+modelWrapper.rotation.x = 0;
+modelWrapper.rotation.z = -0.8;
 
 modelWrapper.add(model);
 scene.add(modelWrapper);
