@@ -28,6 +28,7 @@ let mixer;
 let breathTime = 0;
 
 console.log("TEST CHANGE");
+
 /* =========================
    BEHAVIOR ENGINE
 ========================= */
@@ -47,9 +48,9 @@ window.addEventListener("mousemove", (e) => {
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 
-/* CAMERA */
-/* CAMERA */
-/* CAMERA */
+/* =========================
+   CAMERA
+========================= */
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -59,24 +60,25 @@ const camera = new THREE.PerspectiveCamera(
 
 camera.position.set(0, 1.7, 4.5);
 
-/* CONTROLS */
-const controls = new OrbitControls(
-  camera,
-  renderer.domElement
-);
-
-controls.target.set(0, 1.7, 0);
-controls.update();
-
-/* RENDERER */
+/* =========================
+   RENDERER
+========================= */
 const renderer = new THREE.WebGLRenderer({
   antialias: true
 });
 
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+renderer.setSize(
+  window.innerWidth,
+  window.innerHeight
+);
 
-/* LIGHT */
+document.body.appendChild(
+  renderer.domElement
+);
+
+/* =========================
+   LIGHT
+========================= */
 const hemiLight = new THREE.HemisphereLight(
   0xffffff,
   0x444444,
@@ -85,13 +87,15 @@ const hemiLight = new THREE.HemisphereLight(
 
 scene.add(hemiLight);
 
-/* CONTROLS */
+/* =========================
+   CONTROLS (ONLY ONE)
+========================= */
 const controls = new OrbitControls(
   camera,
   renderer.domElement
 );
 
-controls.target.set(0, 1.2, 0);
+controls.target.set(0, 1.7, 0);
 controls.update();
 
 /* =========================
@@ -105,12 +109,19 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  let head = null;
+  head = null;
 
+  /* =========================
+     NODE DETECTION
+  ========================= */
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
 
-    if (name.includes("head") || name.includes("face") || name.includes("neck")) {
+    if (
+      name.includes("head") ||
+      name.includes("face") ||
+      name.includes("neck")
+    ) {
       head = child;
     }
 
@@ -119,32 +130,37 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     }
   });
 
- model.scale.set(2.1, 2.1, 2.1);
- 
+  /* =========================
+     MODEL TRANSFORM
+  ========================= */
+  model.scale.set(2.1, 2.1, 2.1);
 
-const modelWrapper = new THREE.Group();
-modelWrapper.position.set(0, 0.4, 0);
+  const modelWrapper = new THREE.Group();
+  modelWrapper.position.set(0, 0.4, 0);
 
-/* FINAL AXIS FIX */
-modelWrapper.add(model);
-scene.add(modelWrapper);
+  /* wrapper = sadece placement */
+  modelWrapper.rotation.y = -Math.PI / 2;
+  modelWrapper.rotation.z = -0.25;
 
-/* wrapper = sadece placement */
-modelWrapper.rotation.y = -Math.PI / 2;
-modelWrapper.rotation.z = -0.25;
+  modelWrapper.add(model);
+  scene.add(modelWrapper);
 
-/* model = canlı sistemler */
-characterModel = model;
+  /* model = canlı sistemler */
+  characterModel = model;
 
+  /* =========================
+     AI SYSTEMS
+  ========================= */
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
- 
-if (gltf.animations?.length) {
-  mixer = new THREE.AnimationMixer(model);
-  mixer.clipAction(gltf.animations[0]).play();
-}
-
+  /* =========================
+     ANIMATION
+  ========================= */
+  if (gltf.animations?.length) {
+    mixer = new THREE.AnimationMixer(model);
+    mixer.clipAction(gltf.animations[0]).play();
+  }
 
   target.set(0, 1.6, 2);
   smoothTarget.copy(target);
@@ -186,11 +202,11 @@ function animateCharacter(delta) {
 
   const t = clock.getElapsedTime();
 
-  /* ❌ REMOVE SPIN BUG
-     characterModel.rotation.y += 0.002;
-  */
-
-  brain.update(delta, mouse, behavior.state === "talking");
+  brain.update(
+    delta,
+    mouse,
+    behavior.state === "talking"
+  );
 
   if (blinkSystem) {
     blinkSystem.update(delta, isTalking);
@@ -199,11 +215,10 @@ function animateCharacter(delta) {
   breathTime += delta * 2;
 
   if (!isTalking) {
-    const breath = Math.sin(breathTime) * 0.003;
+    const breath =
+      Math.sin(breathTime) * 0.003;
 
     characterModel.position.y = breath;
-
-    
   }
 
   target.set(
@@ -213,7 +228,8 @@ function animateCharacter(delta) {
   );
 
   if (isTalking) {
-    target.y += Math.sin(t * 10) * 0.02;
+    target.y +=
+      Math.sin(t * 10) * 0.02;
   }
 
   smoothTarget.lerp(target, 0.05);
@@ -231,9 +247,6 @@ function animate() {
 
   const delta = clock.getDelta();
 
-  /* 🔥 CRITICAL FIX
-     animation clip frame update
-  */
   if (mixer) {
     mixer.update(delta);
   }
