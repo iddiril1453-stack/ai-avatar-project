@@ -95,17 +95,19 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  // 🔥 BURAYA KOY
-  model.traverse((child) => {
-    if (child.isBone) {
-      console.log("BONE:", child.name, child.rotation);
-    }
-  });
+/* SCALE */
+model.scale.set(2.1, 2.1, 2.1);
 
-  model.scale.set(2.1, 2.1, 2.1);
-
-/* 🔥 ORIENTATION AUTO FIX */
+/* 🔥 ORIENTATION FIX (TEK SEFER) */
 model.rotation.set(0, 0, 0);
+model.up.set(0, 1, 0);
+
+/* 🔥 ARMATURE FIX */
+model.traverse((child) => {
+  if (child.isBone && child.name === "Root") {
+    child.rotation.set(0, 0, 0);
+  }
+});
 
 /* 🔥 FORCE UPRIGHT */
 model.updateMatrixWorld(true);
