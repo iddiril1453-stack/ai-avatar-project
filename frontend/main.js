@@ -201,13 +201,13 @@ function animateCharacter(delta) {
   if (!characterModel || !brain) return;
 
   const t = clock.getElapsedTime();
-
+/*
   brain.update(
     delta,
     mouse,
     behavior.state === "talking"
   );
-
+*/
   if (blinkSystem) {
     blinkSystem.update(delta, isTalking);
   }
@@ -233,10 +233,11 @@ function animateCharacter(delta) {
   }
 
   smoothTarget.lerp(target, 0.05);
-
+/*
   if (head) {
     head.lookAt(smoothTarget);
   }
+  */  
 }
 
 /* =========================
