@@ -101,7 +101,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 model.scale.set(2.1, 2.1, 2.1);
 
 /* 🔥 ORIENTATION AUTO FIX */
-model.rotation.set(0, -Math.PI / 2, 0);
+model.rotation.set(0, 0, 0);
 
 /* 🔥 FORCE UPRIGHT */
 model.updateMatrixWorld(true);
