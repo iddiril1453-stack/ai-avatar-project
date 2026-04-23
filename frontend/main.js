@@ -93,18 +93,17 @@ const loader = new GLTFLoader();
 
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
-  const model = gltf.scene;
+const model = gltf.scene;
 
-/* SCALE */
+/* 🔥 FIX 1: MODEL UPRIGHT */
+model.rotation.set(Math.PI / 2, 0, 0);
+
+/* 🔥 FIX 2: SCALE */
 model.scale.set(2.1, 2.1, 2.1);
 
-/* 🔥 ORIENTATION FIX (TEK SEFER) */
-model.rotation.set(0, 0, 0);
-model.up.set(0, 1, 0);
-
-/* 🔥 ARMATURE FIX */
+/* 🔥 FIX 3: ARMATURE RESET */
 model.traverse((child) => {
-  if (child.isBone && child.name === "Root") {
+  if (child.isBone) {
     child.rotation.set(0, 0, 0);
   }
 });
