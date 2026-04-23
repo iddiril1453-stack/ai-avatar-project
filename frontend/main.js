@@ -372,7 +372,7 @@ window.addEventListener(
       btn.addEventListener(
         "click",
         sendMessage
-      );
+      
 
       input.addEventListener(
         "keydown",
