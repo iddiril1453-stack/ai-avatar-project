@@ -97,6 +97,15 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
+/* SCALE */
+model.scale.set(2.1, 2.1, 2.1);
+
+/* 🔥 ORIENTATION AUTO FIX */
+model.rotation.set(0, -Math.PI / 2, 0);
+
+/* 🔥 FORCE UPRIGHT */
+model.updateMatrixWorld(true);
+
   /* =========================
      SCALE
   ========================= */
@@ -105,7 +114,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   /* =========================
      ORIENTATION FIX (SAFE)
   ========================= */
-  model.rotation.set(0, Math.PI, 0);
+  model.rotation.set(0, -Math.PI / 2, 0);
 
   /* =========================
      CLEAN PIVOT WRAPPER
