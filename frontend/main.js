@@ -26,6 +26,7 @@ let blinkSystem;
 let mixer;
 
 let breathTime = 0;
+let currentAudio = null;
 
 /* =========================
    BEHAVIOR ENGINE
@@ -94,12 +95,29 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   console.log("MODEL LOADED");
 
-
-if (typeof setState === "function") {
-  setState("idle");
-}
   const model = gltf.scene;
-  head = null;
+
+  /* =========================
+     SCALE
+  ========================= */
+  model.scale.set(2.1, 2.1, 2.1);
+
+  /* =========================
+     ORIENTATION FIX (SAFE)
+  ========================= */
+  model.rotation.set(0, Math.PI, 0);
+
+  /* =========================
+     CLEAN PIVOT WRAPPER
+  ========================= */
+  const modelWrapper = new THREE.Group();
+  modelWrapper.position.set(0, 0.4, 0);
+  modelWrapper.rotation.set(0, 0, 0);
+
+  modelWrapper.add(model);
+  scene.add(modelWrapper);
+
+  characterModel = model;
 
   /* =========================
      NODE DETECTION
@@ -121,27 +139,6 @@ if (typeof setState === "function") {
   });
 
   /* =========================
-     MODEL FIX (IMPORTANT)
-  ========================= */
-
-  model.scale.set(2.1, 2.1, 2.1);
-
-  /* 🔥 FIX 2: model tilt düzeltme (45° eğiklik buradan geliyor) */
-  model.rotation.set(0, 0, 0);
-
-  const modelWrapper = new THREE.Group();
-
-  modelWrapper.position.set(0, 0.4, 0);
-
-  /* 🔥 FIX 3: BURASI BUG KAYNAĞIYDI */
-  modelWrapper.rotation.set(0, 0, 0);
-
-  modelWrapper.add(model);
-  scene.add(modelWrapper);
-
-  characterModel = model;
-
-  /* =========================
      AI SYSTEMS
   ========================= */
   brain = new AnimationBrain(characterModel);
@@ -155,7 +152,9 @@ if (typeof setState === "function") {
     mixer.clipAction(gltf.animations[0]).play();
   }
 
-  /* 🔥 FIX 4: pivot align */
+  /* =========================
+     INIT TARGET (SAFE)
+  ========================= */
   target.set(0, 1.6, 0);
   smoothTarget.copy(target);
 
@@ -293,12 +292,23 @@ async function speak(text) {
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
 
+    // 🔥 FIX: önceki sesi durdur
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = "";
+      currentAudio = null;
+    }
+
     const audio = new Audio(url);
+    currentAudio = audio;
 
     audio.onplay = () => setState("talking");
-    audio.onended = () => setState("idle");
+    audio.onended = () => {
+      setState("idle");
+      currentAudio = null;
+    };
 
-    audio.play();
+    await audio.play();
 
   } catch (err) {
     console.error("TTS ERROR:", err);
