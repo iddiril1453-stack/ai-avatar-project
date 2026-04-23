@@ -109,7 +109,7 @@ model.updateMatrixWorld(true);
   /* =========================
      SCALE
   ========================= */
-  model.scale.set(2.1, 2.1, 2.1);
+  
 
   /* =========================
      ORIENTATION FIX (SAFE)
