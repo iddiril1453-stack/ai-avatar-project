@@ -55,8 +55,10 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.set(0, 1.5, 3.2);
-camera.lookAt(0, 1.4, 0);
+camera.position.set(0, 1.7, 4.5);
+
+controls.target.set(0, 1.7, 0);
+controls.update();
 
 /* RENDERER */
 const renderer = new THREE.WebGLRenderer({
