@@ -116,22 +116,15 @@ const modelWrapper = new THREE.Group();
 modelWrapper.position.set(0, 0.4, 0);
 
 /* FINAL AXIS FIX */
-modelWrapper.rotation.y = -Math.PI / 2;
-modelWrapper.rotation.x = 0;
-modelWrapper.rotation.z = -0.25;
-
 modelWrapper.add(model);
 scene.add(modelWrapper);
 
-  const axes = new THREE.AxesHelper(3);
-axes.position.set(0, 1.2, 0);
-scene.add(axes);
+/* wrapper = sadece placement */
+modelWrapper.rotation.y = -Math.PI / 2;
+modelWrapper.rotation.z = -0.25;
 
-  /* =========================
-     GLOBAL REFERENCES (DOĞRU YER)
-  ========================= */
-
-  characterModel = modelWrapper;
+/* model = canlı sistemler */
+characterModel = model;
 
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
@@ -200,9 +193,7 @@ function animateCharacter(delta) {
 
     characterModel.position.y = breath;
 
-    // 🔥 SAFE MICRO MOTION
-    characterModel.rotation.x =
-      Math.sin(t * 0.5) * 0.001;
+    
   }
 
   target.set(
