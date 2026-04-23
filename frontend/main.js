@@ -27,8 +27,6 @@ let mixer;
 
 let breathTime = 0;
 
-console.log("TEST CHANGE");
-
 /* =========================
    BEHAVIOR ENGINE
 ========================= */
@@ -67,35 +65,24 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true
 });
 
-renderer.setSize(
-  window.innerWidth,
-  window.innerHeight
-);
-
-document.body.appendChild(
-  renderer.domElement
-);
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
 /* =========================
    LIGHT
 ========================= */
-const hemiLight = new THREE.HemisphereLight(
-  0xffffff,
-  0x444444,
-  2
-);
-
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2);
 scene.add(hemiLight);
 
 /* =========================
-   CONTROLS (ONLY ONE)
+   CONTROLS (FIXED)
 ========================= */
-const controls = new OrbitControls(
-  camera,
-  renderer.domElement
-);
+const controls = new OrbitControls(camera, renderer.domElement);
 
-controls.target.set(0, 1.7, 0);
+/* 🔥 FIX 1: pivot artık modelWrapper ile aynı */
+controls.target.set(0, 0.4, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
 controls.update();
 
 /* =========================
@@ -105,10 +92,9 @@ const loader = new GLTFLoader();
 
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
-  console.log("MODEL VERSION 999 LOADED");
+  console.log("MODEL LOADED");
 
   const model = gltf.scene;
-
   head = null;
 
   /* =========================
@@ -131,21 +117,24 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   });
 
   /* =========================
-     MODEL TRANSFORM
+     MODEL FIX (IMPORTANT)
   ========================= */
+
   model.scale.set(2.1, 2.1, 2.1);
 
+  /* 🔥 FIX 2: model tilt düzeltme (45° eğiklik buradan geliyor) */
+  model.rotation.set(0, 0, 0);
+
   const modelWrapper = new THREE.Group();
+
   modelWrapper.position.set(0, 0.4, 0);
 
-  /* wrapper = sadece placement */
-  modelWrapper.rotation.y = -Math.PI / 2;
-  modelWrapper.rotation.z = -0.25;
+  /* 🔥 FIX 3: BURASI BUG KAYNAĞIYDI */
+  modelWrapper.rotation.set(0, 0, 0);
 
   modelWrapper.add(model);
   scene.add(modelWrapper);
 
-  /* model = canlı sistemler */
   characterModel = model;
 
   /* =========================
@@ -162,7 +151,8 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     mixer.clipAction(gltf.animations[0]).play();
   }
 
-  target.set(0, 1.6, 2);
+  /* 🔥 FIX 4: pivot align */
+  target.set(0, 1.6, 0);
   smoothTarget.copy(target);
 
   animate();
@@ -183,31 +173,13 @@ behavior.bind({
 });
 
 /* =========================
-   SAFE STATE SETTER
-========================= */
-function setState(state) {
-  if (behavior) {
-    behavior.setState(state);
-  }
-
-  isTalking = state === "talking";
-  isThinking = state === "thinking";
-}
-
-/* =========================
    CHARACTER UPDATE
 ========================= */
 function animateCharacter(delta) {
-  if (!characterModel || !brain) return;
+  if (!characterModel) return;
 
   const t = clock.getElapsedTime();
-/*
-  brain.update(
-    delta,
-    mouse,
-    behavior.state === "talking"
-  );
-*/
+
   if (blinkSystem) {
     blinkSystem.update(delta, isTalking);
   }
@@ -215,29 +187,25 @@ function animateCharacter(delta) {
   breathTime += delta * 2;
 
   if (!isTalking) {
-    const breath =
-      Math.sin(breathTime) * 0.003;
-
-    characterModel.position.y = breath;
+    characterModel.position.y = Math.sin(breathTime) * 0.003;
   }
 
+  /* =========================
+     🔥 FIX 5: Z DEPTH BUG FIX
+  ========================= */
   target.set(
     mouse.x * 1.5,
     1.6 + mouse.y * 0.5,
-    2
+    0   // ❌ eski 2 -> BU CIRCLE BUG YAPIYORDU
   );
 
   if (isTalking) {
-    target.y +=
-      Math.sin(t * 10) * 0.02;
+    target.y += Math.sin(t * 10) * 0.02;
   }
 
   smoothTarget.lerp(target, 0.05);
-/*
-  if (head) {
-    head.lookAt(smoothTarget);
-  }
-  */  
+
+  /* head lookAt kapalı (şimdilik stabilizasyon için) */
 }
 
 /* =========================
@@ -248,11 +216,12 @@ function animate() {
 
   const delta = clock.getDelta();
 
-  if (mixer) {
-    mixer.update(delta);
-  }
+  if (mixer) mixer.update(delta);
 
   animateCharacter(delta);
+
+  /* 🔥 FIX 6 */
+  controls.update();
 
   renderer.render(scene, camera);
 }
@@ -261,9 +230,7 @@ function animate() {
    CHAT API
 ========================= */
 async function sendMessage() {
-  const input =
-    document.getElementById("userInput");
-
+  const input = document.getElementById("userInput");
   const text = input.value;
 
   if (!text) return;
@@ -275,32 +242,19 @@ async function sendMessage() {
       "https://ai-avatar-project-d2r9.onrender.com/chat",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: text
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
       }
     );
 
-    const raw = await res.text();
-    const data = JSON.parse(raw);
-
-    console.log("BACKEND:", data);
+    const data = await res.json();
 
     setState("idle");
 
-    if (data.reply) {
-      speak(data.reply);
-    }
+    if (data.reply) speak(data.reply);
 
   } catch (err) {
-    console.error(
-      "SEND ERROR:",
-      err
-    );
-
+    console.error("SEND ERROR:", err);
     setState("idle");
   }
 
@@ -316,73 +270,36 @@ async function speak(text) {
       "https://ai-avatar-project-d2r9.onrender.com/tts",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          text
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
       }
     );
 
-    if (!res.ok) {
-      console.error(
-        "TTS ERROR STATUS:",
-        res.status
-      );
-      return;
-    }
-
     const blob = await res.blob();
-    const url =
-      URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
 
     const audio = new Audio(url);
 
-    audio.onplay = () => {
-      setState("talking");
-    };
-
-    audio.onended = () => {
-      setState("idle");
-    };
+    audio.onplay = () => setState("talking");
+    audio.onended = () => setState("idle");
 
     audio.play();
 
   } catch (err) {
-    console.error(
-      "TTS ERROR:",
-      err
-    );
+    console.error("TTS ERROR:", err);
   }
 }
 
 /* =========================
    UI EVENTS
 ========================= */
-window.addEventListener(
-  "DOMContentLoaded",
-  () => {
-    const btn =
-      document.getElementById("sendBtn");
+window.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("sendBtn");
+  const input = document.getElementById("userInput");
 
-    const input =
-      document.getElementById("userInput");
+  btn?.addEventListener("click", sendMessage);
 
-    if (btn && input) {
-      btn.addEventListener(
-        "click",
-        sendMessage
-      );
-
-      input.addEventListener(
-        "keydown",
-        (e) => {
-          if (e.key === "Enter") {
-            sendMessage();
-          }
-        }
-      );
-    }
-  }
-);
+  input?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
+});
