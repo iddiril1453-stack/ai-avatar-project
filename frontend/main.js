@@ -94,6 +94,10 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   console.log("MODEL LOADED");
 
+
+if (typeof setState === "function") {
+  setState("idle");
+}
   const model = gltf.scene;
   head = null;
 
@@ -167,6 +171,8 @@ behavior.bind({
       brain.setState(state, intensity);
     }
 
+
+
     isTalking = state === "talking";
     isThinking = state === "thinking";
   }
@@ -225,6 +231,15 @@ function animate() {
 
   renderer.render(scene, camera);
 }
+function setState(state) {
+  if (behavior) {
+    behavior.setState(state);
+  }
+
+  isTalking = state === "talking";
+  isThinking = state === "thinking";
+}
+
 
 /* =========================
    CHAT API
