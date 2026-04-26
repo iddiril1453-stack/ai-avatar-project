@@ -84,7 +84,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 0.4, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.update(
+controls.update();
 
 /* =========================
    MODEL LOAD
