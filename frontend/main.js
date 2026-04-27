@@ -56,8 +56,8 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-
-camera.position.set(0, 1.5, 5.8);
+/*
+camera.position.set(0, 1.5, 5.8);*/
 
 /* =========================
    RENDERER
@@ -135,9 +135,8 @@ let cameraZ = Math.abs(maxDim / Math.tan(fov / 2));
 cameraZ = Math.max(cameraZ, 3);
 cameraZ = Math.min(cameraZ, 12);
 
-camera.position.set(0, 1.4, cameraZ * 1.2);
+camera.position.set(0, 1.4, cameraZ);
 camera.lookAt(0, 1.2, 0);
-
 controls.target.set(0, 1.2, 0);
 controls.update();
 
