@@ -78,10 +78,8 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   scene.add(wrapper);
   wrapper.add(model);
 
-  /* SCALE */
   model.scale.setScalar(2);
 
-  /* CENTER */
   const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
   model.position.sub(center);
@@ -91,7 +89,6 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   characterModel = model;
   brain = new AnimationBrain(characterModel);
 
-  /* HEAD FIND */
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
     if (name.includes("head") || name.includes("face") || name.includes("neck")) {
@@ -99,15 +96,12 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     }
   });
 
-  /* CAMERA SET */
   camera.position.set(0, 1.5, 5);
   camera.lookAt(0, 1.2, 0);
 
   controls.target.set(0, 1.2, 0);
   controls.update();
 
-  /* 🔥 CRITICAL FIX: INIT BURADA */
-  
   blinkSystem = new BlinkSystem(characterModel);
 
   animate();
@@ -128,7 +122,7 @@ behavior.bind({
 /* =========================
    CHARACTER UPDATE
 ========================= */
-ffunction animateCharacter(delta) {
+function animateCharacter(delta) {
   if (!characterModel) return;
 
   const t = clock.getElapsedTime();
@@ -173,6 +167,8 @@ ffunction animateCharacter(delta) {
     }
   }
 }
+
+/* =========================
    MAIN LOOP
 ========================= */
 function animate() {
@@ -182,7 +178,6 @@ function animate() {
 
   if (mixer) mixer.update(delta);
 
-  // 🔥 EKLE
   if (brain) brain.update(delta, isTalking, isThinking);
 
   animateCharacter(delta);
