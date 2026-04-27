@@ -57,7 +57,7 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.set(0, 1.7, 4.5);
+camera.position.set(0, 1.5, 5.8);
 
 /* =========================
    RENDERER
@@ -81,7 +81,7 @@ scene.add(hemiLight);
 const controls = new OrbitControls(camera, renderer.domElement);
 
 /* 🔥 FIX 1: pivot artık modelWrapper ile aynı */
-controls.target.set(0, 0.4, 0);
+controls.target.set(0, 1.0, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.update();
@@ -93,63 +93,27 @@ const loader = new GLTFLoader();
 
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
-  console.log("MODEL LOADED");
-
   const model = gltf.scene;
 
-  /* =====================================
-     🔥 FIX 1 — ROTATION RESET
-     (eski Math.PI/2 kaldırıldı)
-  ===================================== */
-  model.rotation.set(0, 0, 0);
-  model.up.set(0, 1, 0);
+  /* =========================
+     MODEL ORIENTATION FIX
+  ========================= */
 
-  /* =====================================
-     🔥 FIX 2 — MODEL ÖNÜ KAMERAYA BAKSIN
-     (gerekirse Math.PI / 2 test edilir)
-  ===================================== */
-  model.rotation.y = -Math.PI / 2;
+  // dik hale getir
+  model.rotation.set(Math.PI / 2, Math.PI, 0);
 
-  /* =====================================
-     🔥 FIX 3 — CENTER + GROUND FIX
-  ===================================== */
-  const box = new THREE.Box3().setFromObject(model);
-  const center = new THREE.Vector3();
-  const size = new THREE.Vector3();
+  // scale biraz küçült
+  model.scale.set(1.4, 1.4, 1.4);
 
-  box.getCenter(center);
-  box.getSize(size);
+  /* =========================
+     CLEAN WRAPPER
+  ========================= */
 
-  /* model merkeze gelsin */
-  model.position.x -= center.x;
-  model.position.z -= center.z;
-
-  /* model yere otursun */
-  model.position.y -= box.min.y;
-
-  /* =====================================
-     🔥 FIX 4 — SCALE
-  ===================================== */
-  model.scale.set(2.1, 2.1, 2.1);
-
-  /* =====================================
-     🔥 FIX 5 — ARMATURE RESET
-     (sadece rig varsa çalışır)
-  ===================================== */
-  model.traverse((child) => {
-    if (child.isBone) {
-      child.rotation.set(0, 0, 0);
-    }
-  });
-
-  model.updateMatrixWorld(true);
-
-  /* =====================================
-     🔥 FIX 6 — CLEAN WRAPPER
-  ===================================== */
   const modelWrapper = new THREE.Group();
 
-  modelWrapper.position.set(0, 0, 0);
+  // modeli ekran ortasına indir
+  modelWrapper.position.set(0, -1.2, 0);
+
   modelWrapper.rotation.set(0, 0, 0);
 
   modelWrapper.add(model);
@@ -157,9 +121,10 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   characterModel = model;
 
-  /* =====================================
+  /* =========================
      NODE DETECTION
-  ===================================== */
+  ========================= */
+
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
 
@@ -170,30 +135,25 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     ) {
       head = child;
     }
-
-    if (name.includes("arm")) {
-      child.rotation.z = -0.3;
-    }
   });
 
-  /* =====================================
+  /* =========================
      AI SYSTEMS
-  ===================================== */
+  ========================= */
+
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
-  /* =====================================
+  /* =========================
      ANIMATION
-  ===================================== */
+  ========================= */
+
   if (gltf.animations?.length) {
     mixer = new THREE.AnimationMixer(model);
     mixer.clipAction(gltf.animations[0]).play();
   }
 
-  /* =====================================
-     INIT TARGET
-  ===================================== */
-  target.set(0, 1.6, 0);
+  target.set(0, 1.4, 0);
   smoothTarget.copy(target);
 
   animate();
