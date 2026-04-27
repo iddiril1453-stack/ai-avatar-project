@@ -104,7 +104,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   /* =========================
      SCALE (STABIL)
   ========================= */
-  model.scale.setScalar(1.2);
+  model.scale.setScalar(2.5);
 
   /* =========================
      CENTER (SAFE)
