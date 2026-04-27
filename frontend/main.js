@@ -102,14 +102,16 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   modelWrapper.add(model);
 
   /* =========================
-     SCALE (EN BASİT HAL)
+     SCALE (STABIL)
   ========================= */
-  model.scale.setScalar(2.0);
+  model.scale.setScalar(1.2);
 
   /* =========================
-     CENTER (SAFE MODE)
+     CENTER (SAFE)
   ========================= */
-  model.position.set(0, 0, 0);
+  const box = new THREE.Box3().setFromObject(model);
+  const center = box.getCenter(new THREE.Vector3());
+  model.position.sub(center);
 
   /* =========================
      ROTATION
@@ -118,28 +120,19 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   characterModel = model;
 
-  const box = new THREE.Box3().setFromObject(model);
-const size = box.getSize(new THREE.Vector3());
-const center = box.getCenter(new THREE.Vector3());
+  /* =========================
+     CAMERA (SABİT + STABIL)
+  ========================= */
+  camera.position.set(0, 1.5, 5);
+  camera.lookAt(0, 1.2, 0);
 
-// modeli ortala
-model.position.sub(center);
-
-// camera fit
-const maxDim = Math.max(size.x, size.y, size.z);
-const fov = camera.fov * (Math.PI / 180);
-const distance = maxDim * 2.5;
-
-camera.position.set(0, 1.4, distance);
-camera.lookAt(0, 1.2, 0);
-controls.target.set(0, 1.2, 0);
-controls.update();
+  controls.target.set(0, 1.2, 0);
+  controls.update();
 
   /* =========================
-     DEBUG (ÖNEMLİ)
+     DEBUG
   ========================= */
   console.log("MODEL SCALE:", model.scale);
-  console.log("BOX:", new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()));
 
   /* =========================
      SYSTEMS
@@ -152,7 +145,6 @@ controls.update();
     mixer.clipAction(gltf.animations[0]).play();
   }
 
-  /*target.set(0, 1.4, 0);*/
   smoothTarget.copy(target);
 
   animate();
