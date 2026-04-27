@@ -102,29 +102,32 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   modelWrapper.add(model);
 
   /* =========================
-     SCALE (STABIL)
+     SCALE (STABLE)
   ========================= */
-  model.scale.setScalar(1);
-
-const box = new THREE.Box3().setFromObject(model);
-const size = box.getSize(new THREE.Vector3());
-const center = box.getCenter(new THREE.Vector3());
-
-model.position.sub(center);
-
-const maxDim = Math.max(size.x, size.y, size.z);
-const distance = maxDim * 2.5;
-
-camera.position.set(0, 1.5, distance);
-camera.lookAt(0, 1.2, 0);
-
-controls.target.set(0, 1.2, 0);
-controls.update();
+  model.scale.setScalar(2.0);
 
   /* =========================
-     DEBUG
+     CENTER FIX
   ========================= */
-  console.log("MODEL SCALE:", model.scale);
+  const box = new THREE.Box3().setFromObject(model);
+  const center = box.getCenter(new THREE.Vector3());
+  model.position.sub(center);
+
+  /* =========================
+     ROTATION FIX
+  ========================= */
+  model.rotation.set(0, 0, 0);
+
+  characterModel = model;
+
+  /* =========================
+     CAMERA (SABİT - BOZMUYORUZ)
+  ========================= */
+  camera.position.set(0, 1.5, 5);
+  camera.lookAt(0, 1.2, 0);
+
+  controls.target.set(0, 1.2, 0);
+  controls.update();
 
   /* =========================
      SYSTEMS
