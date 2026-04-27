@@ -119,6 +119,24 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   characterModel = model;
 
+  const box = new THREE.Box3().setFromObject(model);
+const size = box.getSize(new THREE.Vector3());
+const center = box.getCenter(new THREE.Vector3());
+
+// modeli ortala
+model.position.sub(center);
+
+// camera fit
+const maxDim = Math.max(size.x, size.y, size.z);
+const fov = camera.fov * (Math.PI / 180);
+let cameraZ = Math.abs(maxDim / Math.tan(fov / 2));
+
+camera.position.set(0, 1.4, cameraZ * 1.2);
+camera.lookAt(0, 1.2, 0);
+
+controls.target.set(0, 1.2, 0);
+controls.update();
+
   /* =========================
      DEBUG (ÖNEMLİ)
   ========================= */
@@ -136,7 +154,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     mixer.clipAction(gltf.animations[0]).play();
   }
 
-  target.set(0, 1.4, 0);
+  /*target.set(0, 1.4, 0);*/
   smoothTarget.copy(target);
 
   animate();
