@@ -77,6 +77,8 @@ scene.add(hemiLight);
 ========================= */
 const controls = new OrbitControls(camera, renderer.domElement);
 
+const loader = new GLTFLoader(); // 👈 BU EKSİK OLAN ŞEY
+
 /* 🔥 FIX 1: pivot artık modelWrapper ile aynı */
 controls.target.set(0, 1.0, 0);
 controls.enableDamping = true;
