@@ -107,7 +107,7 @@ model.position.sub(center);
  model.rotation.set(0, 0, 0);
 
   // scale biraz küçült
-  model.scale.set(1.5, 1.5, 1.5);
+  model.scale.set(1.8, 1.8, 1.8);
 
   /* =========================
      CLEAN WRAPPER
