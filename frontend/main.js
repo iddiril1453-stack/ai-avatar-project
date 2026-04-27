@@ -89,6 +89,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   model.rotation.set(0, 0, 0);
 
   characterModel = model;
+  brain = new AnimationBrain(characterModel);
 
   /* HEAD FIND */
   model.traverse((child) => {
@@ -106,7 +107,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   controls.update();
 
   /* 🔥 CRITICAL FIX: INIT BURADA */
-  brain = new AnimationBrain(characterModel);
+  
   blinkSystem = new BlinkSystem(characterModel);
 
   animate();
@@ -127,33 +128,51 @@ behavior.bind({
 /* =========================
    CHARACTER UPDATE
 ========================= */
-function animateCharacter(delta) {
+ffunction animateCharacter(delta) {
   if (!characterModel) return;
 
   const t = clock.getElapsedTime();
 
-  if (blinkSystem) blinkSystem.update(delta, isTalking);
+  if (blinkSystem) {
+    blinkSystem.update(delta, isTalking);
+  }
 
   breathTime += delta * 2;
 
+  // BODY idle
   if (!isTalking) {
-    characterModel.position.y = Math.sin(breathTime) * 0.003;
+    characterModel.position.y = Math.sin(breathTime) * 0.015;
+    characterModel.rotation.y = Math.sin(breathTime * 0.5) * 0.03;
   }
 
+  // TARGET
   target.set(
     mouse.x * 0.8,
     1.2 + mouse.y * 0.4,
-    0
+    1.5
   );
 
   if (isTalking) {
     target.y += Math.sin(t * 10) * 0.02;
   }
 
-  smoothTarget.lerp(target, 0.05);
-}
+  smoothTarget.lerp(target, 0.12);
 
-/* =========================
+  // HEAD
+  if (head) {
+    head.lookAt(smoothTarget);
+
+    if (isTalking) {
+      head.rotation.y += Math.sin(t * 6) * 0.01;
+      head.rotation.x += Math.sin(t * 4) * 0.005;
+    }
+
+    if (!isTalking) {
+      head.rotation.y += Math.sin(t * 0.8) * 0.002;
+      head.rotation.x += Math.sin(t * 0.6) * 0.001;
+    }
+  }
+}
    MAIN LOOP
 ========================= */
 function animate() {
@@ -162,6 +181,9 @@ function animate() {
   const delta = clock.getDelta();
 
   if (mixer) mixer.update(delta);
+
+  // 🔥 EKLE
+  if (brain) brain.update(delta, isTalking, isThinking);
 
   animateCharacter(delta);
 
