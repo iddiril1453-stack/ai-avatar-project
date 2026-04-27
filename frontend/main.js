@@ -104,35 +104,21 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   /* =========================
      SCALE (STABIL)
   ========================= */
-  model.scale.setScalar(2.5);
+  model.scale.setScalar(1);
 
-  /* =========================
-     CENTER (SAFE)
-  ========================= */
-  const box = new THREE.Box3().setFromObject(model);
-  const center = box.getCenter(new THREE.Vector3());
-  model.position.sub(center);
+const box = new THREE.Box3().setFromObject(model);
+const size = box.getSize(new THREE.Vector3());
+const center = box.getCenter(new THREE.Vector3());
 
-  /* =========================
-     ROTATION
-  ========================= */
-  model.rotation.set(0, 0, 0);
+model.position.sub(center);
 
-  characterModel = model;
-
-  /* =========================
-     CAMERA (SABİT + STABIL)
-  ========================= */
-  const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
 const maxDim = Math.max(size.x, size.y, size.z);
-
-// stabil distance
 const distance = maxDim * 2.5;
 
-camera.position.set(0, maxDim * 0.3 + 1.2, distance);
-camera.lookAt(0, maxDim * 0.2, 0);
+camera.position.set(0, 1.5, distance);
+camera.lookAt(0, 1.2, 0);
 
-controls.target.set(0, maxDim * 0.2, 0);
+controls.target.set(0, 1.2, 0);
 controls.update();
 
   /* =========================
