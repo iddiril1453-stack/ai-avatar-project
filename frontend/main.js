@@ -23,17 +23,8 @@ let blinkSystem;
 let mixer;
 
 let breathTime = 0;
-
 let currentAudio = null;
 
-let head = null;
-
-const mouse = {
-  x: 0,
-  y: 0
-};
-
-const clock = new THREE.Clock();
 
 /* =========================
    BEHAVIOR ENGINE
