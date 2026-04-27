@@ -81,7 +81,7 @@ scene.add(hemiLight);
 const controls = new OrbitControls(camera, renderer.domElement);
 
 /* 🔥 FIX 1: pivot artık modelWrapper ile aynı */
-controls.target.set(0, 0.8, 0);
+controls.target.set(0, 1.0, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.update();
@@ -95,16 +95,16 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
+  const box = new THREE.Box3().setFromObject(model);
+const center = box.getCenter(new THREE.Vector3());
+
+model.position.sub(center);
+
   /* =========================
      MODEL ORIENTATION FIX
   ========================= */
 
-  // dik hale getir
-  model.rotation.set(
-  -Math.PI / 2, // dik hale getir
-  Math.PI,      // ekrana döndür
-  0
-);
+ model.rotation.set(0, Math.PI, 0);
 
   // scale biraz küçült
   model.scale.set(1.4, 1.4, 1.4);
@@ -116,7 +116,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   const modelWrapper = new THREE.Group();
 
   // modeli ekran ortasına indir
-  modelWrapper.position.set(0, -0.3, 0);
+  modelWrapper.position.set(0, 0, 0);
 
   modelWrapper.rotation.set(0, 0, 0);
 
@@ -200,11 +200,11 @@ function animateCharacter(delta) {
   /* =========================
      🔥 FIX 5: Z DEPTH BUG FIX
   ========================= */
-  target.set(
-    mouse.x * 1.5,
-    1.6 + mouse.y * 0.5,
-    0   // ❌ eski 2 -> BU CIRCLE BUG YAPIYORDU
-  );
+ target.set(
+  mouse.x * 0.8,
+  1.2 + mouse.y * 0.4,
+  0
+);
 
   if (isTalking) {
     target.y += Math.sin(t * 10) * 0.02;
