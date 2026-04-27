@@ -96,58 +96,41 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   const model = gltf.scene;
 
   /* =========================
-     WRAPPER FIRST
+     WRAPPER
   ========================= */
   const modelWrapper = new THREE.Group();
   scene.add(modelWrapper);
-
   modelWrapper.add(model);
 
   /* =========================
-     SCALE FIX
+     SCALE (EN BASİT HAL)
   ========================= */
-  model.scale.set(1.5, 1.5, 1.5);
-
-  model.updateMatrixWorld(true);
+  model.scale.setScalar(2.0);
 
   /* =========================
-     CENTER FIX (AFTER SCALE)
+     CENTER (SAFE MODE)
   ========================= */
-  const box = new THREE.Box3().setFromObject(model);
-  const center = box.getCenter(new THREE.Vector3());
-  model.position.sub(center);
+  model.position.set(0, 0, 0);
 
   /* =========================
-     ORIENTATION
+     ROTATION
   ========================= */
   model.rotation.set(0, 0, 0);
 
   characterModel = model;
 
   /* =========================
-     NODE DETECT
+     DEBUG (ÖNEMLİ)
   ========================= */
-  model.traverse((child) => {
-    const name = child.name?.toLowerCase() || "";
-
-    if (
-      name.includes("head") ||
-      name.includes("face") ||
-      name.includes("neck")
-    ) {
-      head = child;
-    }
-  });
+  console.log("MODEL SCALE:", model.scale);
+  console.log("BOX:", new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()));
 
   /* =========================
-     AI SYSTEMS
+     SYSTEMS
   ========================= */
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
-  /* =========================
-     ANIMATIONS
-  ========================= */
   if (gltf.animations?.length) {
     mixer = new THREE.AnimationMixer(model);
     mixer.clipAction(gltf.animations[0]).play();
