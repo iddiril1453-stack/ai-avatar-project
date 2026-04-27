@@ -131,6 +131,10 @@ const maxDim = Math.max(size.x, size.y, size.z);
 const fov = camera.fov * (Math.PI / 180);
 let cameraZ = Math.abs(maxDim / Math.tan(fov / 2));
 
+// clamp (çok önemli)
+cameraZ = Math.max(cameraZ, 3);
+cameraZ = Math.min(cameraZ, 12);
+
 camera.position.set(0, 1.4, cameraZ * 1.2);
 camera.lookAt(0, 1.2, 0);
 
