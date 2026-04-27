@@ -93,39 +93,63 @@ const loader = new GLTFLoader();
 
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
-const model = gltf.scene;
+  console.log("MODEL LOADED");
 
-/* 🔥 FIX 1: MODEL UPRIGHT */
-model.rotation.set(Math.PI / 2, 0, 0);
+  const model = gltf.scene;
 
-/* 🔥 FIX 2: SCALE */
-model.scale.set(2.1, 2.1, 2.1);
+  /* =====================================
+     🔥 FIX 1 — ROTATION RESET
+     (eski Math.PI/2 kaldırıldı)
+  ===================================== */
+  model.rotation.set(0, 0, 0);
+  model.up.set(0, 1, 0);
 
-/* 🔥 FIX 3: ARMATURE RESET */
-model.traverse((child) => {
-  if (child.isBone) {
-    child.rotation.set(0, 0, 0);
-  }
-});
+  /* =====================================
+     🔥 FIX 2 — MODEL ÖNÜ KAMERAYA BAKSIN
+     (gerekirse Math.PI / 2 test edilir)
+  ===================================== */
+  model.rotation.y = -Math.PI / 2;
 
-/* 🔥 FORCE UPRIGHT */
-model.updateMatrixWorld(true);
+  /* =====================================
+     🔥 FIX 3 — CENTER + GROUND FIX
+  ===================================== */
+  const box = new THREE.Box3().setFromObject(model);
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
 
-  /* =========================
-     SCALE
-  ========================= */
-  
+  box.getCenter(center);
+  box.getSize(size);
 
-  /* =========================
-     ORIENTATION FIX (SAFE)
-  ========================= */
-  model.rotation.set(0, -Math.PI / 2, 0);
+  /* model merkeze gelsin */
+  model.position.x -= center.x;
+  model.position.z -= center.z;
 
-  /* =========================
-     CLEAN PIVOT WRAPPER
-  ========================= */
+  /* model yere otursun */
+  model.position.y -= box.min.y;
+
+  /* =====================================
+     🔥 FIX 4 — SCALE
+  ===================================== */
+  model.scale.set(2.1, 2.1, 2.1);
+
+  /* =====================================
+     🔥 FIX 5 — ARMATURE RESET
+     (sadece rig varsa çalışır)
+  ===================================== */
+  model.traverse((child) => {
+    if (child.isBone) {
+      child.rotation.set(0, 0, 0);
+    }
+  });
+
+  model.updateMatrixWorld(true);
+
+  /* =====================================
+     🔥 FIX 6 — CLEAN WRAPPER
+  ===================================== */
   const modelWrapper = new THREE.Group();
-  modelWrapper.position.set(0, 0.4, 0);
+
+  modelWrapper.position.set(0, 0, 0);
   modelWrapper.rotation.set(0, 0, 0);
 
   modelWrapper.add(model);
@@ -133,9 +157,9 @@ model.updateMatrixWorld(true);
 
   characterModel = model;
 
-  /* =========================
+  /* =====================================
      NODE DETECTION
-  ========================= */
+  ===================================== */
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
 
@@ -152,23 +176,23 @@ model.updateMatrixWorld(true);
     }
   });
 
-  /* =========================
+  /* =====================================
      AI SYSTEMS
-  ========================= */
+  ===================================== */
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
-  /* =========================
+  /* =====================================
      ANIMATION
-  ========================= */
+  ===================================== */
   if (gltf.animations?.length) {
     mixer = new THREE.AnimationMixer(model);
     mixer.clipAction(gltf.animations[0]).play();
   }
 
-  /* =========================
-     INIT TARGET (SAFE)
-  ========================= */
+  /* =====================================
+     INIT TARGET
+  ===================================== */
   target.set(0, 1.6, 0);
   smoothTarget.copy(target);
 
