@@ -95,43 +95,38 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  model.scale.set(1.5, 1.5, 1.5);
-
-model.position.set(0, 0, 0);
-
-const box = new THREE.Box3().setFromObject(model);
-const center = box.getCenter(new THREE.Vector3());
-model.position.sub(center);
-
   /* =========================
-     MODEL ORIENTATION FIX
+     WRAPPER FIRST
   ========================= */
-
- model.rotation.set(0, 0, 0);
-
-  // scale biraz küçült
-  
-
-  /* =========================
-     CLEAN WRAPPER
-  ========================= */
-
   const modelWrapper = new THREE.Group();
-
-  // modeli ekran ortasına indir
-  modelWrapper.position.set(0, 0, 0);
-
-  modelWrapper.rotation.set(0, 0, 0);
+  scene.add(modelWrapper);
 
   modelWrapper.add(model);
-  scene.add(modelWrapper);
+
+  /* =========================
+     SCALE FIX
+  ========================= */
+  model.scale.set(1.5, 1.5, 1.5);
+
+  model.updateMatrixWorld(true);
+
+  /* =========================
+     CENTER FIX (AFTER SCALE)
+  ========================= */
+  const box = new THREE.Box3().setFromObject(model);
+  const center = box.getCenter(new THREE.Vector3());
+  model.position.sub(center);
+
+  /* =========================
+     ORIENTATION
+  ========================= */
+  model.rotation.set(0, 0, 0);
 
   characterModel = model;
 
   /* =========================
-     NODE DETECTION
+     NODE DETECT
   ========================= */
-
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
 
@@ -147,14 +142,12 @@ model.position.sub(center);
   /* =========================
      AI SYSTEMS
   ========================= */
-
   brain = new AnimationBrain(characterModel);
   blinkSystem = new BlinkSystem(characterModel);
 
   /* =========================
-     ANIMATION
+     ANIMATIONS
   ========================= */
-
   if (gltf.animations?.length) {
     mixer = new THREE.AnimationMixer(model);
     mixer.clipAction(gltf.animations[0]).play();
