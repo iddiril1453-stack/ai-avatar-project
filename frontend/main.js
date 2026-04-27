@@ -8,25 +8,32 @@ import { AvatarBehaviorEngine } from "./avatarBehaviorEngine.js";
 /* =========================
    CORE STATE
 ========================= */
-let head;
+let head = null;
 let characterModel;
 
-let isThinking = false;
-let isTalking = false;
+const mouse = { x: 0, y: 0 };
 
-let mouse = { x: 0, y: 0 };
+const target = new THREE.Vector3();
+const smoothTarget = new THREE.Vector3();
 
-let target = new THREE.Vector3();
-let smoothTarget = new THREE.Vector3();
-
-let clock = new THREE.Clock();
+const clock = new THREE.Clock();
 
 let brain;
 let blinkSystem;
 let mixer;
 
 let breathTime = 0;
+
 let currentAudio = null;
+
+let head = null;
+
+const mouse = {
+  x: 0,
+  y: 0
+};
+
+const clock = new THREE.Clock();
 
 /* =========================
    BEHAVIOR ENGINE
@@ -88,59 +95,38 @@ controls.update();
 /* =========================
    MODEL LOAD
 ========================= */
-const loader = new GLTFLoader();
-
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  /* =========================
-     WRAPPER
-  ========================= */
   const modelWrapper = new THREE.Group();
   scene.add(modelWrapper);
   modelWrapper.add(model);
 
-  /* =========================
-     SCALE (STABLE)
-  ========================= */
-  model.scale.setScalar(2.0);
+  model.scale.setScalar(2);
 
-  /* =========================
-     CENTER FIX
-  ========================= */
   const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
   model.position.sub(center);
 
-  /* =========================
-     ROTATION FIX
-  ========================= */
   model.rotation.set(0, 0, 0);
 
   characterModel = model;
 
-  /* =========================
-     CAMERA (SABİT - BOZMUYORUZ)
-  ========================= */
+  model.traverse((child) => {
+    const name = child.name?.toLowerCase() || "";
+    if (name.includes("head") || name.includes("face") || name.includes("neck")) {
+      head = child;
+    }
+  });
+
   camera.position.set(0, 1.5, 5);
   camera.lookAt(0, 1.2, 0);
 
   controls.target.set(0, 1.2, 0);
   controls.update();
 
-  /* =========================
-     SYSTEMS
-  ========================= */
-  brain = new AnimationBrain(characterModel);
-  blinkSystem = new BlinkSystem(characterModel);
-
-  if (gltf.animations?.length) {
-    mixer = new THREE.AnimationMixer(model);
-    mixer.clipAction(gltf.animations[0]).play();
-  }
-
-  smoothTarget.copy(target);
+  blinkSystem = new BlinkSystem();
 
   animate();
 });
