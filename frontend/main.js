@@ -123,11 +123,17 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   /* =========================
      CAMERA (SABİT + STABIL)
   ========================= */
-  camera.position.set(0, 1.5, 5);
-  camera.lookAt(0, 1.2, 0);
+  const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+const maxDim = Math.max(size.x, size.y, size.z);
 
-  controls.target.set(0, 1.2, 0);
-  controls.update();
+// stabil distance
+const distance = maxDim * 2.5;
+
+camera.position.set(0, maxDim * 0.3 + 1.2, distance);
+camera.lookAt(0, maxDim * 0.2, 0);
+
+controls.target.set(0, maxDim * 0.2, 0);
+controls.update();
 
   /* =========================
      DEBUG
