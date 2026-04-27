@@ -104,10 +104,10 @@ model.position.sub(center);
      MODEL ORIENTATION FIX
   ========================= */
 
- model.rotation.set(0, Math.PI, 0);
+ model.rotation.set(0, 0, 0);
 
   // scale biraz küçült
-  model.scale.set(1.4, 1.4, 1.4);
+  model.scale.set(1.5, 1.5, 1.5);
 
   /* =========================
      CLEAN WRAPPER
