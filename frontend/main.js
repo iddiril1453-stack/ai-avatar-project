@@ -56,8 +56,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-/*
-camera.position.set(0, 1.5, 5.8);*/
+
 
 /* =========================
    RENDERER
@@ -129,13 +128,9 @@ model.position.sub(center);
 // camera fit
 const maxDim = Math.max(size.x, size.y, size.z);
 const fov = camera.fov * (Math.PI / 180);
-let cameraZ = Math.abs(maxDim / Math.tan(fov / 2));
+const distance = maxDim * 2.5;
 
-// clamp (çok önemli)
-cameraZ = Math.max(cameraZ, 3);
-cameraZ = Math.min(cameraZ, 12);
-
-camera.position.set(0, 1.4, cameraZ);
+camera.position.set(0, 1.4, distance);
 camera.lookAt(0, 1.2, 0);
 controls.target.set(0, 1.2, 0);
 controls.update();
