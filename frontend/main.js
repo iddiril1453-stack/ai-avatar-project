@@ -95,9 +95,12 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  const box = new THREE.Box3().setFromObject(model);
-const center = box.getCenter(new THREE.Vector3());
+  model.scale.set(1.5, 1.5, 1.5);
 
+model.position.set(0, 0, 0);
+
+const box = new THREE.Box3().setFromObject(model);
+const center = box.getCenter(new THREE.Vector3());
 model.position.sub(center);
 
   /* =========================
@@ -107,7 +110,7 @@ model.position.sub(center);
  model.rotation.set(0, 0, 0);
 
   // scale biraz küçült
-  model.scale.set(1.8, 1.8, 1.8);
+  
 
   /* =========================
      CLEAN WRAPPER
