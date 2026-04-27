@@ -81,7 +81,7 @@ scene.add(hemiLight);
 const controls = new OrbitControls(camera, renderer.domElement);
 
 /* 🔥 FIX 1: pivot artık modelWrapper ile aynı */
-controls.target.set(0, 1.0, 0);
+controls.target.set(0, 0.8, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.update();
@@ -100,7 +100,11 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   ========================= */
 
   // dik hale getir
-  model.rotation.set(Math.PI / 2, Math.PI, 0);
+  model.rotation.set(
+  -Math.PI / 2, // dik hale getir
+  Math.PI,      // ekrana döndür
+  0
+);
 
   // scale biraz küçült
   model.scale.set(1.4, 1.4, 1.4);
@@ -112,7 +116,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   const modelWrapper = new THREE.Group();
 
   // modeli ekran ortasına indir
-  modelWrapper.position.set(0, -1.2, 0);
+  modelWrapper.position.set(0, -0.3, 0);
 
   modelWrapper.rotation.set(0, 0, 0);
 
