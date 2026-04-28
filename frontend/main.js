@@ -84,10 +84,12 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   const center = box.getCenter(new THREE.Vector3());
   model.position.sub(center);
 
-  model.rotation.set(0, 0, 0);
+ model.rotation.set(0, 0, 0);
 
- characterModel = model;
+characterModel = model;
 window.characterModel = characterModel;
+
+console.log("MODEL DEBUG READY ✅", window.characterModel);
 
 brain = new AnimationBrain(characterModel);
 
@@ -101,7 +103,6 @@ if (gltf.animations && gltf.animations.length) {
 
   console.log("IDLE ANIMATION PLAYING ✅");
 }
-
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
     if (name.includes("head") || name.includes("face") || name.includes("neck")) {
