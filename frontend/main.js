@@ -83,7 +83,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
  /* const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
   model.position.sub(center);*/
-model.position.set(0, -1, 0);
+ model.position.set(0, -1.4, 0);
  model.rotation.set(0, 0, 0);
 
 characterModel = model;
@@ -124,8 +124,8 @@ if (gltf.animations && gltf.animations.length) {
     }
   });
 
-  camera.position.set(0, 1.2, 2.5);
-  camera.lookAt(0, 1, 0);
+  camera.position.set(0, 1.4, 3.5);
+  camera.lookAt(0, 1.2, 0);
 
   controls.target.set(0, 1.2, 0);
   controls.update();
