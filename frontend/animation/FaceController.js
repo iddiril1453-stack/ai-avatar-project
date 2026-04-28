@@ -38,17 +38,17 @@ update(delta) {
   this.time += delta;
   const t = this.time;
 
-  // 🧊 idle base motion
-  let idleY = Math.sin(t * 1.2) * 0.003;
-  let idleX = Math.sin(t * 0.8) * 0.002;
+  // 🧊 idle motion
+  let idleY = Math.sin(t * 1.2) * 0.005;
+  let idleX = Math.sin(t * 0.8) * 0.003;
 
-  // 🗣️ talking intensity boost
+  // 🗣️ talking boost (DAHA GÜÇLÜ)
   let talkFactor = this.isTalking ? 1 : 0;
 
-  let talkY = Math.sin(t * 12) * 0.08 * talkFactor;
-  let talkX = Math.sin(t * 10) * 0.04 * talkFactor;
+  let talkY = Math.sin(t * 12) * 0.15 * talkFactor;
+  let talkX = Math.sin(t * 10) * 0.08 * talkFactor;
 
-  // 👉 APPLY (tek yerden kontrol)
+  // 🔥 APPLY
   this.head.rotation.y = idleY + talkY;
   this.head.rotation.x = idleX + talkX;
 }

@@ -99,7 +99,7 @@ window.characterModel.traverse((c) => {
 });
 brain = new AnimationBrain(characterModel);
 
-characterModel = model;
+
 face = new FaceController(characterModel);
 
 
@@ -107,9 +107,13 @@ if (gltf.animations && gltf.animations.length) {
   mixer = new THREE.AnimationMixer(model);
 
   gltf.animations.forEach((clip) => {
-    const action = mixer.clipAction(clip);
-    action.play();
-  });
+  const action = mixer.clipAction(clip);
+
+  action.play();
+
+  // 🔥 FACE OVERRIDE FIX
+  action.setEffectiveWeight(0.3);
+});
 
   console.log("IDLE ANIMATION PLAYING ✅");
 }
