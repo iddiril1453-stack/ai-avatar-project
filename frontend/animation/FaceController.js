@@ -38,18 +38,22 @@ update(delta) {
   this.time += delta;
   const t = this.time;
 
-  // 🧊 idle motion
-  let idleY = Math.sin(t * 1.2) * 0.005;
-  let idleX = Math.sin(t * 0.8) * 0.003;
+  // 🧍 IDLE (dinleme duruşu)
+  const idleY = Math.sin(t * 1.2) * 0.003;
+  const idleX = Math.sin(t * 0.8) * 0.002;
 
-  // 🗣️ talking boost (DAHA GÜÇLÜ)
-  let talkFactor = this.isTalking ? 1 : 0;
+  // 🗣️ TALKING (konuşma duruşu)
+  if (this.isTalking) {
 
-  let talkY = Math.sin(t * 12) * 0.15 * talkFactor;
-  let talkX = Math.sin(t * 10) * 0.08 * talkFactor;
+    // daha belirgin kafa hareketi
+    this.head.rotation.y = Math.sin(t * 8) * 0.12;
+    this.head.rotation.x = Math.sin(t * 10) * 0.06;
 
-  // 🔥 APPLY
-  this.head.rotation.y = idleY + talkY;
-  this.head.rotation.x = idleX + talkX;
+  } else {
+
+    // idle mode (sakin)
+    this.head.rotation.y = idleY;
+    this.head.rotation.x = idleX;
+  }
 }
 }

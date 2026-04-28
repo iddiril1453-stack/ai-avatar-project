@@ -180,20 +180,14 @@ function animateCharacter(delta) {
 
   smoothTarget.lerp(target, 0.12);
 
-  // HEAD
-  if (head) {
+ if (head) {
+
+  if (!isTalking) {
     head.lookAt(smoothTarget);
-
-    if (isTalking) {
-      head.rotation.y += Math.sin(t * 6) * 0.01;
-      head.rotation.x += Math.sin(t * 4) * 0.005;
-    }
-
-    if (!isTalking) {
-      head.rotation.y += Math.sin(t * 0.8) * 0.002;
-      head.rotation.x += Math.sin(t * 0.6) * 0.001;
-    }
   }
+
+}
+  
 }
 
 /* =========================
