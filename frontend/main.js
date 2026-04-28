@@ -4,10 +4,10 @@ import { OrbitControls } from './libs/OrbitControls.js';
 import { AnimationBrain } from './animation/animationBrain.js';
 import { BlinkSystem } from './animation/blinkSystem.js';
 import { AvatarBehaviorEngine } from "./avatarBehaviorEngine.js";
+import { FaceController } from "./FaceController.js";
 
-/* =========================
-   CORE STATE
-========================= */
+let face;
+
 let head = null;
 let characterModel;
 
@@ -92,6 +92,9 @@ window.characterModel = characterModel;
 console.log("MODEL DEBUG READY ✅", window.characterModel);
 
 brain = new AnimationBrain(characterModel);
+
+face = new FaceController(characterModel);
+
 
 if (gltf.animations && gltf.animations.length) {
   mixer = new THREE.AnimationMixer(model);
@@ -192,6 +195,9 @@ function animate() {
 
   if (mixer) mixer.update(delta);
 
+  // 🔥 FACE UPDATE
+  if (face) face.update(delta);
+
   if (brain) brain.update(delta, isTalking, isThinking);
 
   animateCharacter(delta);
@@ -213,11 +219,18 @@ function setState(state) {
 /* =========================
    CHAT
 ========================= */
+let isSending = false;
+
 async function sendMessage() {
+  if (isSending) return;
+
   const input = document.getElementById("userInput");
   const text = input.value;
 
   if (!text) return;
+
+  input.value = "";
+  isSending = true;
 
   setState("thinking");
 
@@ -230,18 +243,17 @@ async function sendMessage() {
 
     const data = await res.json();
 
-    setState("idle");
-
-    if (data.reply) speak(data.reply);
+    if (data.reply) {
+      speak(data.reply); // 🔥 TEK ENTRY POINT
+    }
 
   } catch (err) {
     console.error(err);
     setState("idle");
+    face?.setIdle?.();
+    isSending = false;
   }
-
-  input.value = "";
 }
-
 /* =========================
    SPEAK
 ========================= */
@@ -258,19 +270,29 @@ async function speak(text) {
 
     if (currentAudio) {
       currentAudio.pause();
-      currentAudio = null;
     }
 
     const audio = new Audio(url);
     currentAudio = audio;
 
-    audio.onplay = () => setState("talking");
-    audio.onended = () => setState("idle");
+    audio.onplay = () => {
+      setState("talking");
+      face?.setTalking?.(1);
+    };
+
+    audio.onended = () => {
+      setState("idle");
+      face?.setIdle?.();
+      isSending = false;
+    };
 
     audio.play();
 
   } catch (err) {
     console.error(err);
+    setState("idle");
+    face?.setIdle?.();
+    isSending = false;
   }
 }
 
