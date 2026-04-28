@@ -74,15 +74,13 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  const wrapper = new THREE.Group();
-  scene.add(wrapper);
-  wrapper.add(model);
+  cscene.add(model);
 
   // 🔥 Mixamo scale fix
   model.scale.setScalar(0.008);
 
   // 🔥 full body center fix
-  model.position.set(0, -1.8, 0);
+  model.position.set(0, 0, 0);
 
   model.rotation.set(0, 0, 0);
 
@@ -125,11 +123,11 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   });
 
   // 🔥 CAMERA FULL BODY FIX
-  camera.position.set(0, 1.2, 7.5);
+  ccamera.position.set(0, 1.4, 3.5);
 
   camera.lookAt(0, 0.8, 0);
 
-  controls.target.set(0, 0.8, 0);
+  controls.target.set(0, 1.4, 0);
   controls.update();
 
   blinkSystem = new BlinkSystem(characterModel);
@@ -185,7 +183,8 @@ function animateCharacter(delta) {
  if (head) {
 
   if (!isTalking) {
-    head.lookAt(smoothTarget);
+    head.parent.worldToLocal(smoothTarget.clone());
+head.lookAt(smoothTarget);
   }
 
 }
