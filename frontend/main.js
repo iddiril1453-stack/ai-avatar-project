@@ -4,7 +4,7 @@ import { OrbitControls } from './libs/OrbitControls.js';
 import { AnimationBrain } from './animation/animationBrain.js';
 import { BlinkSystem } from './animation/blinkSystem.js';
 import { AvatarBehaviorEngine } from "./avatarBehaviorEngine.js";
-import { FaceController } from "./FaceController.js";
+import { FaceController } from "./animation/FaceController.js";
 
 let face;
 
