@@ -76,7 +76,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  cscene.add(model);
+  scene.add(model);
 
   // 🔥 Mixamo scale fix
   model.scale.setScalar(1);
@@ -192,9 +192,9 @@ function animateCharacter(delta) {
  if (head) {
 
   if (!isTalking) {
-    head.parent.worldToLocal(smoothTarget.clone());
-head.lookAt(smoothTarget);
-  }
+   const temp = smoothTarget.clone();
+head.parent.worldToLocal(temp);
+head.lookAt(temp);
 
 }
   
