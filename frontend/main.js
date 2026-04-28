@@ -77,36 +77,42 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   const model = gltf.scene;
 
   // =========================
-  // WRAPPER (ZORUNLU FIX)
+  // WRAPPER (STABLE ROOT)
   // =========================
   const wrapper = new THREE.Group();
   scene.add(wrapper);
   wrapper.add(model);
 
   // =========================
-  // SCALE FIX (ÇOK ÖNEMLİ)
+  // SCALE FIX (MIXAMO SAFE)
   // =========================
   model.scale.setScalar(0.01);
 
   // =========================
-  // UPDATE MATRIX
+  // FORCE MATRIX UPDATE
   // =========================
   model.updateWorldMatrix(true, true);
 
   // =========================
-  // CENTER FIX (WRAPPER'A)
+  // BBOX CENTER FIX
   // =========================
   const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
 
-  wrapper.position.sub(center);
-  wrapper.position.y += 0.8;
+  model.position.sub(center);
+
+  // yere oturt
+  model.position.y += size.y * 0.5;
 
   // =========================
-  // ROTATION FIX
+  // ROTATION RESET
   // =========================
   model.rotation.set(0, 0, 0);
 
+  // =========================
+  // SAVE MODEL
+  // =========================
   characterModel = model;
   window.characterModel = characterModel;
 
@@ -116,10 +122,14 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     if (c.isBone) console.log("BONE:", c.name);
   });
 
+  // =========================
+  // SYSTEM INIT
+  // =========================
   brain = new AnimationBrain(characterModel);
   face = new FaceController(characterModel);
 
   if (gltf.animations && gltf.animations.length) {
+
     mixer = new THREE.AnimationMixer(model);
 
     gltf.animations.forEach((clip) => {
@@ -131,6 +141,9 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     console.log("IDLE ANIMATION PLAYING ✅");
   }
 
+  // =========================
+  // HEAD FIND
+  // =========================
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
 
@@ -144,15 +157,27 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   });
 
   // =========================
-  // CAMERA FIX (WRAPPER'A BAĞLI)
+  // CAMERA AUTO FIT (CRITICAL FIX)
   // =========================
-  camera.position.set(0, 1.6, 6);
 
-  camera.lookAt(wrapper.position);
+  const maxDim = Math.max(size.x, size.y, size.z);
 
-  controls.target.copy(wrapper.position);
+  const centerWorld = new THREE.Vector3(0, size.y * 0.5, 0);
+
+  camera.position.set(
+    centerWorld.x,
+    centerWorld.y + maxDim * 0.2,
+    centerWorld.z + maxDim * 2.2
+  );
+
+  controls.target.copy(centerWorld);
   controls.update();
 
+  camera.lookAt(centerWorld);
+
+  // =========================
+  // BLINK SYSTEM
+  // =========================
   blinkSystem = new BlinkSystem(characterModel);
 
   animate();
