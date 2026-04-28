@@ -78,56 +78,58 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   scene.add(wrapper);
   wrapper.add(model);
 
-  model.scale.setScalar(0.01);
+  // 🔥 Mixamo scale fix
+  model.scale.setScalar(0.008);
 
- /* const box = new THREE.Box3().setFromObject(model);
-  const center = box.getCenter(new THREE.Vector3());
-  model.position.sub(center);*/
- model.position.set(0, -0.3, 0);
- model.rotation.set(0, 0, 0);
+  // 🔥 full body center fix
+  model.position.set(0, -1.2, 0);
 
-characterModel = model;
-window.characterModel = characterModel;
+  model.rotation.set(0, 0, 0);
 
-console.log("MODEL DEBUG READY ✅", window.characterModel);
+  characterModel = model;
+  window.characterModel = characterModel;
 
-// 🔥 BURAYA EKLE
-window.characterModel.traverse((c) => {
-  if (c.isBone) {
-    console.log("BONE:", c.name);
+  console.log("MODEL DEBUG READY ✅", window.characterModel);
+
+  window.characterModel.traverse((c) => {
+    if (c.isBone) {
+      console.log("BONE:", c.name);
+    }
+  });
+
+  brain = new AnimationBrain(characterModel);
+  face = new FaceController(characterModel);
+
+  if (gltf.animations && gltf.animations.length) {
+    mixer = new THREE.AnimationMixer(model);
+
+    gltf.animations.forEach((clip) => {
+      const action = mixer.clipAction(clip);
+      action.play();
+      action.setEffectiveWeight(0.3);
+    });
+
+    console.log("IDLE ANIMATION PLAYING ✅");
   }
-});
-brain = new AnimationBrain(characterModel);
 
-
-face = new FaceController(characterModel);
-
-
-if (gltf.animations && gltf.animations.length) {
-  mixer = new THREE.AnimationMixer(model);
-
-  gltf.animations.forEach((clip) => {
-  const action = mixer.clipAction(clip);
-
-  action.play();
-
-  // 🔥 FACE OVERRIDE FIX
-  action.setEffectiveWeight(0.3);
-});
-
-  console.log("IDLE ANIMATION PLAYING ✅");
-}
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
-    if (name.includes("head") || name.includes("face") || name.includes("neck")) {
+
+    if (
+      name.includes("head") ||
+      name.includes("face") ||
+      name.includes("neck")
+    ) {
       head = child;
     }
   });
 
-  camera.position.set(0, 1.6, 4.2);
-  camera.lookAt(0, 1.4, 0);
+  // 🔥 CAMERA FULL BODY FIX
+  camera.position.set(0, 1.0, 7.5);
 
-  ccontrols.target.set(0, 1.4, 0);
+  camera.lookAt(0, 1.0, 0);
+
+  controls.target.set(0, 1.0, 0);
   controls.update();
 
   blinkSystem = new BlinkSystem(characterModel);
