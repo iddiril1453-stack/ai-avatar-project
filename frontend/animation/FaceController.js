@@ -32,21 +32,24 @@ export class FaceController {
     this.isTalking = false;
   }
 
-  update(delta) {
-    if (!this.head) return;
+update(delta) {
+  if (!this.head) return;
 
-    this.time += delta;
+  this.time += delta;
+  const t = this.time;
 
-    const t = this.time;
+  // 🧊 idle base motion
+  let idleY = Math.sin(t * 1.2) * 0.003;
+  let idleX = Math.sin(t * 0.8) * 0.002;
 
-    // 🙂 idle micro motion
-    this.head.rotation.y += Math.sin(t * 1.2) * 0.002;
-    this.head.rotation.x += Math.sin(t * 0.8) * 0.001;
+  // 🗣️ talking intensity boost
+  let talkFactor = this.isTalking ? 1 : 0;
 
-    // 🗣️ talking fake motion
-    if (this.isTalking) {
-      this.head.rotation.y += Math.sin(t * 8) * 0.01;
-      this.head.rotation.x += Math.sin(t * 12) * 0.005;
-    }
-  }
+  let talkY = Math.sin(t * 12) * 0.08 * talkFactor;
+  let talkX = Math.sin(t * 10) * 0.04 * talkFactor;
+
+  // 👉 APPLY (tek yerden kontrol)
+  this.head.rotation.y = idleY + talkY;
+  this.head.rotation.x = idleX + talkX;
+}
 }
