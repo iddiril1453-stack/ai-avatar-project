@@ -78,7 +78,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   scene.add(wrapper);
   wrapper.add(model);
 
-  model.scale.setScalar(0.8);
+  model.scale.setScalar(0.01);
 
  /* const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
