@@ -58,13 +58,31 @@ controls.maxPolarAngle = Math.PI * 0.55;
 controls.minPolarAngle = Math.PI * 0.35;
 
 
-/* =========================
-   LIGHTcontrols.target.copy(centerWorld);
-camera.lookAt(centerWorld);
-========================= */
+const dist = Math.max(size.x, size.y, size.z) * 2.5;
+
+// 🔥 SINGLE ORBIT CENTER FIX
+const orbitCenter = new THREE.Vector3(0, size.y * 0.5, 0);
+
+camera.position.set(0, orbitCenter.y + dist * 0.2, dist);
+
+controls.target.copy(orbitCenter);
+controls.update();
+
+camera.lookAt(orbitCenter);
+
+
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2);
 scene.add(hemiLight);
+controls.enablePan = false;
+controls.enableZoom = true;
 
+controls.minPolarAngle = 0.4;
+controls.maxPolarAngle = 2.6;
+
+controls.minDistance = 2;
+controls.maxDistance = 8;
+
+controls.screenSpacePanning = false;
 /* =========================
    MOUSE
 ========================= */
@@ -83,51 +101,35 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   const model = gltf.scene;
 
   // =========================
-  // WRAPPER (STABLE ROOT)
+  // ROOT FIX (DOĞRU VERSION)
   // =========================
   const wrapper = new THREE.Group();
-  scene.add(wrapper);
+  const anchor = new THREE.Object3D();
+
+  scene.add(anchor);
+  anchor.add(wrapper);
   wrapper.add(model);
 
   // =========================
-  // SCALE FIX (MIXAMO SAFE)
+  // SCALE
   // =========================
   model.scale.setScalar(0.01);
 
-  // =========================
-  // FORCE MATRIX UPDATE
-  // =========================
   model.updateWorldMatrix(true, true);
 
   // =========================
-  // BBOX CENTER FIX
+  // BBOX
   // =========================
   const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
 
   model.position.sub(center);
+  model.position.y = -size.y * 0.5;
 
-  // yere oturt
-  // 🔥 stabilize ground lock (zoom distortion fix)
-model.position.y = -size.y * 0.5;
-
-  // =========================
-  // ROTATION RESET
-  // =========================
   model.rotation.set(0, 0, 0);
 
-  // =========================
-  // SAVE MODEL
-  // =========================
   characterModel = model;
-  window.characterModel = characterModel;
-
-  console.log("MODEL DEBUG READY ✅", window.characterModel);
-
-  window.characterModel.traverse((c) => {
-    if (c.isBone) console.log("BONE:", c.name);
-  });
 
   // =========================
   // SYSTEM INIT
@@ -135,8 +137,7 @@ model.position.y = -size.y * 0.5;
   brain = new AnimationBrain(characterModel);
   face = new FaceController(characterModel);
 
-  if (gltf.animations && gltf.animations.length) {
-
+  if (gltf.animations?.length) {
     mixer = new THREE.AnimationMixer(model);
 
     gltf.animations.forEach((clip) => {
@@ -144,63 +145,49 @@ model.position.y = -size.y * 0.5;
       action.play();
       action.setEffectiveWeight(0.3);
     });
-
-    console.log("IDLE ANIMATION PLAYING ✅");
   }
 
-  // =========================
-  // HEAD FIND
-  // =========================
   model.traverse((child) => {
-    const name = child.name?.toLowerCase() || "";
-
-    if (
-      name.includes("head") ||
-      name.includes("face") ||
-      name.includes("neck")
-    ) {
+    const n = child.name?.toLowerCase() || "";
+    if (n.includes("head") || n.includes("neck") || n.includes("face")) {
       head = child;
     }
   });
 
   // =========================
-  // CAMERA AUTO FIT (CRITICAL FIX)
+  // CAMERA FIX (TEK MERKEZ)
   // =========================
 
   const maxDim = Math.max(size.x, size.y, size.z);
-
   const centerWorld = new THREE.Vector3(0, size.y * 0.5, 0);
 
+  const dist = maxDim * 2.5;
+
   camera.position.set(
-    centerWorld.x,
-    centerWorld.y + maxDim * 0.2,
-    centerWorld.z + maxDim * 2.2
+    0,
+    centerWorld.y + maxDim * 0.25,
+    dist
   );
 
   controls.target.copy(centerWorld);
-camera.position.set(
-  centerWorld.x,
-  centerWorld.y + maxDim * 0.25,
-  centerWorld.z + maxDim * 2.4
-);
 
-camera.lookAt(centerWorld);
-controls.update();
+  camera.lookAt(centerWorld);
 
-// 🔥 ADD THIS
-controls.enablePan = false;
-
-// 🔥 soft human orbit (çember glitch fix)
-controls.minPolarAngle = 0.2;
-controls.maxPolarAngle = Math.PI - 0.2;
-
-// 🔥 zoom stabil
-controls.minDistance = maxDim * 1.2;
-controls.maxDistance = maxDim * 3.5;
+  controls.update();
 
   // =========================
-  // BLINK SYSTEM
+  // ORBIT LOCK (STABLE)
   // =========================
+  controls.enablePan = false;
+  controls.enableZoom = true;
+  controls.screenSpacePanning = false;
+
+  controls.minPolarAngle = 0.3;
+  controls.maxPolarAngle = Math.PI - 0.3;
+
+  controls.minDistance = maxDim * 1.2;
+  controls.maxDistance = maxDim * 3.5;
+
   blinkSystem = new BlinkSystem(characterModel);
 
   animate();
