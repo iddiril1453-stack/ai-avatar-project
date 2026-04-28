@@ -7,6 +7,7 @@ import { AvatarBehaviorEngine } from "./avatarBehaviorEngine.js";
 import { FaceController } from "./animation/FaceController.js";
 
 let face;
+
 let head = null;
 let characterModel;
 
@@ -25,18 +26,19 @@ const target = new THREE.Vector3();
 const smoothTarget = new THREE.Vector3();
 const clock = new THREE.Clock();
 
+/* =========================
+   BEHAVIOR ENGINE
+========================= */
 const behavior = new AvatarBehaviorEngine();
 
 /* =========================
-   SCENE
+   SCENE / CAMERA / RENDERER
 ========================= */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 scene.add(new THREE.AxesHelper(5));
 
-/* =========================
-   CAMERA
-========================= */
+
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -44,33 +46,23 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-/* =========================
-   RENDERER
-========================= */
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-/* =========================
-   CONTROLS (IMPORTANT FIX)
-========================= */
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 controls.enablePan = false;
-
-// 🔥 CRITICAL FIX: YUVARLANMA (POLAR LIMIT)
+controls.maxPolarAngle = Math.PI * 0.55;
 controls.minPolarAngle = Math.PI * 0.35;
-controls.maxPolarAngle = Math.PI * 0.65;
 
-// 🔥 zoom clamp (model bozulmasını engeller)
-controls.minDistance = 2;
-controls.maxDistance = 8;
 
 /* =========================
    LIGHT
 ========================= */
-scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2);
+scene.add(hemiLight);
 
 /* =========================
    MOUSE
@@ -89,38 +81,60 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
+  // =========================
+  // WRAPPER (STABLE ROOT)
+  // =========================
   const wrapper = new THREE.Group();
   scene.add(wrapper);
   wrapper.add(model);
 
   // =========================
-  // SCALE FIX
+  // SCALE FIX (MIXAMO SAFE)
   // =========================
   model.scale.setScalar(0.01);
 
+  // =========================
+  // FORCE MATRIX UPDATE
+  // =========================
   model.updateWorldMatrix(true, true);
 
   // =========================
-  // CENTER FIX
+  // BBOX CENTER FIX
   // =========================
   const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
 
   model.position.sub(center);
+
+  // yere oturt
   model.position.y += size.y * 0.5;
 
+  // =========================
+  // ROTATION RESET
+  // =========================
   model.rotation.set(0, 0, 0);
 
+  // =========================
+  // SAVE MODEL
+  // =========================
   characterModel = model;
   window.characterModel = characterModel;
 
-  console.log("MODEL READY ✅", characterModel);
+  console.log("MODEL DEBUG READY ✅", window.characterModel);
 
+  window.characterModel.traverse((c) => {
+    if (c.isBone) console.log("BONE:", c.name);
+  });
+
+  // =========================
+  // SYSTEM INIT
+  // =========================
   brain = new AnimationBrain(characterModel);
   face = new FaceController(characterModel);
 
-  if (gltf.animations?.length) {
+  if (gltf.animations && gltf.animations.length) {
+
     mixer = new THREE.AnimationMixer(model);
 
     gltf.animations.forEach((clip) => {
@@ -128,43 +142,111 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
       action.play();
       action.setEffectiveWeight(0.3);
     });
+
+    console.log("IDLE ANIMATION PLAYING ✅");
   }
 
+  // =========================
+  // HEAD FIND
+  // =========================
   model.traverse((child) => {
-    const n = child.name?.toLowerCase() || "";
-    if (n.includes("head") || n.includes("neck") || n.includes("face")) {
+    const name = child.name?.toLowerCase() || "";
+
+    if (
+      name.includes("head") ||
+      name.includes("face") ||
+      name.includes("neck")
+    ) {
       head = child;
     }
   });
 
-  /* =========================
-     CAMERA AUTO FIT (FIXED)
-  ========================= */
+  // =========================
+  // CAMERA AUTO FIT (CRITICAL FIX)
+  // =========================
 
   const maxDim = Math.max(size.x, size.y, size.z);
 
   const centerWorld = new THREE.Vector3(0, size.y * 0.5, 0);
 
-  const dist = maxDim * 2.2;
-
   camera.position.set(
-    0,
+    centerWorld.x,
     centerWorld.y + maxDim * 0.2,
-    dist
+    centerWorld.z + maxDim * 2.2
   );
 
-  camera.lookAt(centerWorld);
-
   controls.target.copy(centerWorld);
-  controls.update();
+controls.update();
 
+camera.lookAt(centerWorld);
+
+// 🔥 ADD THIS
+controls.enablePan = false;
+controls.maxPolarAngle = Math.PI * 0.55;
+controls.minPolarAngle = Math.PI * 0.35;
+
+  // =========================
+  // BLINK SYSTEM
+  // =========================
   blinkSystem = new BlinkSystem(characterModel);
 
   animate();
 });
 
 /* =========================
-   ANIMATION LOOP
+   STATE BRIDGE
+========================= */
+behavior.bind({
+  onStateChange: (state, intensity) => {
+    if (brain) brain.setState(state, intensity);
+
+    isTalking = state === "talking";
+    isThinking = state === "thinking";
+  }
+});
+
+/* =========================
+   CHARACTER UPDATE
+========================= */
+function animateCharacter(delta) {
+  if (!characterModel) return;
+
+  const t = clock.getElapsedTime();
+
+  if (blinkSystem) {
+    blinkSystem.update(delta, isTalking);
+  }
+
+  breathTime += delta * 2;
+
+  if (!isTalking) {
+    characterModel.position.y = -0.3 + Math.sin(breathTime) * 0.015;
+    characterModel.rotation.y = Math.sin(breathTime * 0.5) * 0.03;
+  }
+
+  target.set(
+    mouse.x * 0.8,
+    1.2 + mouse.y * 0.4,
+    1.5
+  );
+
+  if (isTalking) {
+    target.y += Math.sin(t * 10) * 0.02;
+  }
+
+  smoothTarget.lerp(target, 0.12);
+
+  if (head) {
+    if (!isTalking) {
+      const temp = smoothTarget.clone();
+      head.parent.worldToLocal(temp);
+      head.lookAt(temp.clone().lerp(head.position, 0.5));
+    }
+  }
+}
+
+/* =========================
+   MAIN LOOP
 ========================= */
 function animate() {
   requestAnimationFrame(animate);
@@ -172,8 +254,12 @@ function animate() {
   const delta = clock.getDelta();
 
   if (mixer) mixer.update(delta);
-  if (brain) brain.update(delta, isTalking, isThinking);
+
   if (face) face.update(delta);
+
+  if (brain) brain.update(delta, isTalking, isThinking);
+
+  animateCharacter(delta);
 
   controls.update();
   renderer.render(scene, camera);
