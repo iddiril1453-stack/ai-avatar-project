@@ -78,12 +78,21 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   scene.add(model);
 
-  // 🔥 Mixamo scale fix
-  model.scale.setScalar(1);
+  // 🔥 SCALE FIRST (çok önemli)
+  model.scale.setScalar(0.01);
 
-  // 🔥 full body center fix
-  model.position.set(0, 0, 0);
+  // 🔥 matrix update (bbox doğru hesaplansın)
+  model.updateWorldMatrix(true, true);
 
+  // 🔥 FULL BODY CENTER FIX
+  const box = new THREE.Box3().setFromObject(model);
+  const center = box.getCenter(new THREE.Vector3());
+  model.position.sub(center);
+
+  // 🔥 ground lift
+  model.position.y += 0.8;
+
+  // ❌ bunu sabitlemek yerine bırakıyoruz (çakışma yaratıyordu)
   model.rotation.set(0, 0, 0);
 
   characterModel = model;
@@ -109,13 +118,6 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
       action.setEffectiveWeight(0.3);
     });
 
-console.log("MODEL BBOX DEBUG");
-
-const box = new THREE.Box3().setFromObject(model);
-console.log("SIZE:", box.getSize(new THREE.Vector3()));
-console.log("CENTER:", box.getCenter(new THREE.Vector3()));
-
-
     console.log("IDLE ANIMATION PLAYING ✅");
   }
 
@@ -131,12 +133,12 @@ console.log("CENTER:", box.getCenter(new THREE.Vector3()));
     }
   });
 
-  // 🔥 CAMERA FULL BODY FIX
-  camera.position.set(0, 1.5, 3);
+  // 🔥 CAMERA FULL BODY FIX (DAHA UZAK + STABIL)
+  camera.position.set(0, 1.6, 6);
 
-  camera.lookAt(0, 1.2, 0);
+  camera.lookAt(0, 1.4, 0);
 
-  controls.target.set(0, 1.2, 0);
+  controls.target.set(0, 1.4, 0);
   controls.update();
 
   blinkSystem = new BlinkSystem(characterModel);
