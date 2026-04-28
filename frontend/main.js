@@ -36,6 +36,8 @@ const behavior = new AvatarBehaviorEngine();
 ========================= */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
+scene.add(new THREE.AxesHelper(5));
+
 
 const camera = new THREE.PerspectiveCamera(
   75,
