@@ -91,6 +91,12 @@ window.characterModel = characterModel;
 
 console.log("MODEL DEBUG READY ✅", window.characterModel);
 
+// 🔥 BURAYA EKLE
+window.characterModel.traverse((c) => {
+  if (c.isBone) {
+    console.log("BONE:", c.name);
+  }
+});
 brain = new AnimationBrain(characterModel);
 
 characterModel = model;
