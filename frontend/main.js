@@ -59,7 +59,8 @@ controls.minPolarAngle = Math.PI * 0.35;
 
 
 /* =========================
-   LIGHT
+   LIGHTcontrols.target.copy(centerWorld);
+camera.lookAt(centerWorld);
 ========================= */
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2);
 scene.add(hemiLight);
@@ -108,7 +109,8 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   model.position.sub(center);
 
   // yere oturt
-  model.position.y += size.y * 0.5;
+  // 🔥 stabilize ground lock (zoom distortion fix)
+model.position.y = -size.y * 0.5;
 
   // =========================
   // ROTATION RESET
@@ -176,14 +178,25 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   );
 
   controls.target.copy(centerWorld);
-controls.update();
+camera.position.set(
+  centerWorld.x,
+  centerWorld.y + maxDim * 0.25,
+  centerWorld.z + maxDim * 2.4
+);
 
 camera.lookAt(centerWorld);
+controls.update();
 
 // 🔥 ADD THIS
 controls.enablePan = false;
-controls.maxPolarAngle = Math.PI * 0.55;
-controls.minPolarAngle = Math.PI * 0.35;
+
+// 🔥 soft human orbit (çember glitch fix)
+controls.minPolarAngle = 0.2;
+controls.maxPolarAngle = Math.PI - 0.2;
+
+// 🔥 zoom stabil
+controls.minDistance = maxDim * 1.2;
+controls.maxDistance = maxDim * 3.5;
 
   // =========================
   // BLINK SYSTEM
