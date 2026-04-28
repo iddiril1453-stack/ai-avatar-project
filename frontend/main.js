@@ -87,7 +87,18 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   model.rotation.set(0, 0, 0);
 
   characterModel = model;
-  brain = new AnimationBrain(characterModel);
+brain = new AnimationBrain(characterModel);
+
+if (gltf.animations && gltf.animations.length) {
+  mixer = new THREE.AnimationMixer(model);
+
+  gltf.animations.forEach((clip) => {
+    const action = mixer.clipAction(clip);
+    action.play();
+  });
+
+  console.log("IDLE ANIMATION PLAYING ✅");
+}
 
   model.traverse((child) => {
     const name = child.name?.toLowerCase() || "";
