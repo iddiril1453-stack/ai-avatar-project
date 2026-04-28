@@ -83,7 +83,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
  /* const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
   model.position.sub(center);*/
- model.position.set(0, -1.4, 0);
+ model.position.set(0, -0.3, 0);
  model.rotation.set(0, 0, 0);
 
 characterModel = model;
@@ -124,10 +124,10 @@ if (gltf.animations && gltf.animations.length) {
     }
   });
 
-  camera.position.set(0, 1.4, 3.5);
-  camera.lookAt(0, 1.2, 0);
+  camera.position.set(0, 1.6, 4.2);
+  camera.lookAt(0, 1.4, 0);
 
-  controls.target.set(0, 1.2, 0);
+  ccontrols.target.set(0, 1.4, 0);
   controls.update();
 
   blinkSystem = new BlinkSystem(characterModel);
@@ -163,7 +163,7 @@ function animateCharacter(delta) {
 
   // BODY idle
   if (!isTalking) {
-    characterModel.position.y = Math.sin(breathTime) * 0.015;
+    characterModel.position.y = -0.3 + Math.sin(breathTime) * 0.015;
     characterModel.rotation.y = Math.sin(breathTime * 0.5) * 0.03;
   }
 
