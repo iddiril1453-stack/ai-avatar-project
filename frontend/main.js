@@ -93,6 +93,7 @@ console.log("MODEL DEBUG READY ✅", window.characterModel);
 
 brain = new AnimationBrain(characterModel);
 
+characterModel = model;
 face = new FaceController(characterModel);
 
 

@@ -2,80 +2,51 @@ export class FaceController {
   constructor(model) {
     this.model = model;
 
-    this.mouthBone = null;
-    this.headBone = null;
-
-    this.blinkTimer = 0;
+    this.head = null;
     this.isTalking = false;
-    this.talkingIntensity = 0;
 
-    this.findBones();
+    this.time = 0;
+
+    this.findHead();
   }
 
-  findBones() {
+  findHead() {
     this.model.traverse((child) => {
+      const name = child.name?.toLowerCase() || "";
 
-      const name = child.name.toLowerCase();
-
-      if (name.includes("head")) {
-        this.headBone = child;
-      }
-
-      if (name.includes("jaw") || name.includes("mouth")) {
-        this.mouthBone = child;
+      if (name.includes("head") || name.includes("neck")) {
+        this.head = child;
       }
     });
 
-    console.log("FACE BONES FOUND:", {
-      head: !!this.headBone,
-      mouth: !!this.mouthBone
+    console.log("FACE CONTROLLER READY:", {
+      head: !!this.head
     });
   }
 
-  setTalking(intensity) {
-    this.isTalking = true;
-    this.talkingIntensity = intensity; // 0 - 1
+  setTalking(state) {
+    this.isTalking = state;
   }
 
   setIdle() {
     this.isTalking = false;
-    this.talkingIntensity = 0;
   }
 
   update(delta) {
+    if (!this.head) return;
 
-    // 🗣️ TALKING ANIMATION
-    if (this.isTalking && this.mouthBone) {
+    this.time += delta;
 
-      const open = Math.sin(Date.now() * 0.02) * this.talkingIntensity;
+    const t = this.time;
 
-      this.mouthBone.rotation.x = open * 0.5;
+    // 🙂 idle micro motion
+    this.head.rotation.y += Math.sin(t * 1.2) * 0.002;
+    this.head.rotation.x += Math.sin(t * 0.8) * 0.001;
+
+    // 🗣️ talking fake motion
+    if (this.isTalking) {
+      this.head.rotation.y += Math.sin(t * 8) * 0.01;
+      this.head.rotation.x += Math.sin(t * 12) * 0.005;
     }
-
-    // 🙂 HEAD MICRO MOVEMENT
-    if (this.headBone) {
-      this.headBone.rotation.y =
-        Math.sin(Date.now() * 0.001) * 0.05;
-    }
-
-    // 👀 BLINK SYSTEM (simulated)
-    this.blinkTimer += delta;
-
-    if (this.blinkTimer > 3) {
-      this.blink();
-      this.blinkTimer = 0;
-    }
-  }
-
-  blink() {
-    if (!this.headBone) return;
-
-    const original = this.headBone.scale.y;
-
-    this.headBone.scale.y = 0.1;
-
-    setTimeout(() => {
-      this.headBone.scale.y = original;
-    }, 120);
   }
 }
