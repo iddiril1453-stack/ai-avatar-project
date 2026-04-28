@@ -76,23 +76,35 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  scene.add(model);
+  // =========================
+  // WRAPPER (ZORUNLU FIX)
+  // =========================
+  const wrapper = new THREE.Group();
+  scene.add(wrapper);
+  wrapper.add(model);
 
-  // 🔥 SCALE FIRST (çok önemli)
+  // =========================
+  // SCALE FIX (ÇOK ÖNEMLİ)
+  // =========================
   model.scale.setScalar(0.01);
 
-  // 🔥 matrix update (bbox doğru hesaplansın)
+  // =========================
+  // UPDATE MATRIX
+  // =========================
   model.updateWorldMatrix(true, true);
 
-  // 🔥 FULL BODY CENTER FIX
+  // =========================
+  // CENTER FIX (WRAPPER'A)
+  // =========================
   const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
-  model.position.sub(center);
 
-  // 🔥 ground lift
-  model.position.y += 0.8;
+  wrapper.position.sub(center);
+  wrapper.position.y += 0.8;
 
-  // ❌ bunu sabitlemek yerine bırakıyoruz (çakışma yaratıyordu)
+  // =========================
+  // ROTATION FIX
+  // =========================
   model.rotation.set(0, 0, 0);
 
   characterModel = model;
@@ -101,9 +113,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   console.log("MODEL DEBUG READY ✅", window.characterModel);
 
   window.characterModel.traverse((c) => {
-    if (c.isBone) {
-      console.log("BONE:", c.name);
-    }
+    if (c.isBone) console.log("BONE:", c.name);
   });
 
   brain = new AnimationBrain(characterModel);
@@ -133,12 +143,14 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     }
   });
 
-  // 🔥 CAMERA FULL BODY FIX (DAHA UZAK + STABIL)
+  // =========================
+  // CAMERA FIX (WRAPPER'A BAĞLI)
+  // =========================
   camera.position.set(0, 1.6, 6);
 
-  camera.lookAt(0, 1.4, 0);
+  camera.lookAt(wrapper.position);
 
-  controls.target.set(0, 1.4, 0);
+  controls.target.copy(wrapper.position);
   controls.update();
 
   blinkSystem = new BlinkSystem(characterModel);
