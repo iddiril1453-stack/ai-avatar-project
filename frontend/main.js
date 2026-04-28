@@ -170,13 +170,11 @@ function animateCharacter(delta) {
 
   breathTime += delta * 2;
 
-  // BODY idle
   if (!isTalking) {
     characterModel.position.y = -0.3 + Math.sin(breathTime) * 0.015;
     characterModel.rotation.y = Math.sin(breathTime * 0.5) * 0.03;
   }
 
-  // TARGET
   target.set(
     mouse.x * 0.8,
     1.2 + mouse.y * 0.4,
@@ -189,15 +187,13 @@ function animateCharacter(delta) {
 
   smoothTarget.lerp(target, 0.12);
 
- if (head) {
-
-  if (!isTalking) {
-   const temp = smoothTarget.clone();
-head.parent.worldToLocal(temp);
-head.lookAt(temp);
-
-}
-  
+  if (head) {
+    if (!isTalking) {
+      const temp = smoothTarget.clone();
+      head.parent.worldToLocal(temp);
+      head.lookAt(temp);
+    }
+  }
 }
 
 /* =========================
@@ -210,7 +206,6 @@ function animate() {
 
   if (mixer) mixer.update(delta);
 
-  // 🔥 FACE UPDATE
   if (face) face.update(delta);
 
   if (brain) brain.update(delta, isTalking, isThinking);
