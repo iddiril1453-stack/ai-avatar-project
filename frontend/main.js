@@ -86,7 +86,9 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   model.rotation.set(0, 0, 0);
 
-  characterModel = model;
+ characterModel = model;
+window.characterModel = characterModel;
+
 brain = new AnimationBrain(characterModel);
 
 if (gltf.animations && gltf.animations.length) {
