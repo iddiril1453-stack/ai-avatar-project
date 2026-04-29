@@ -77,7 +77,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   const model = gltf.scene;
 
   // 🔥 SCALE FIRST
-  model.scale.setScalar(0.08);
+  model.scale.setScalar(0.25);
   model.updateWorldMatrix(true, true);
 
   // 🔥 BBOX FIRST (IMPORTANT FIX)
@@ -103,7 +103,7 @@ pivot.add(model);
 );
 
 // model daha büyük ve stabil görünmesi için
-const fitDistance = maxDim * 1.8;
+const fitDistance = maxDim * 1.2;
 
 // gerçek merkez
 const orbitCenter = new THREE.Vector3(
@@ -159,13 +159,7 @@ function animateCharacter(delta) {
   }
 
   // 🔥 FIXED ROTATION (ONLY ONE targetY)
-  const targetY = mouse.x * Math.PI;
 
-  characterModel.rotation.y = THREE.MathUtils.lerp(
-    characterModel.rotation.y,
-    targetY,
-    0.06
-  );
 
   // HEAD LOOK
   if (head && !isTalking) {
