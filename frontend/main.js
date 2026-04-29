@@ -61,8 +61,6 @@ window.addEventListener("mousemove", (e) => {
 });
 
 /* ========================= LOAD MODEL */
-const loader = new GLTFLoader();
-
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
@@ -74,30 +72,48 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   model.scale.setScalar(0.01);
   model.updateWorldMatrix(true, true);
 
-  // BBOX
- 
+  // =========================
+  // BBOX FIX
+  // =========================
+  const box = new THREE.Box3().setFromObject(model);
 
-modelCenter = box.getCenter(new THREE.Vector3());
-modelSize = box.getSize(new THREE.Vector3());
+  modelCenter = box.getCenter(new THREE.Vector3());
+  modelSize = box.getSize(new THREE.Vector3());
 
-model.position.sub(modelCenter);
+  model.position.sub(modelCenter);
 
-  const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
+  const maxDim = Math.max(
+    modelSize.x,
+    modelSize.y,
+    modelSize.z
+  );
+
   const fitDistance = maxDim * 3;
 
-  // CENTER FIX
+  // =========================
+  // ORBIT CENTER (TEK DEĞİŞKEN)
+  // =========================
+  const orbitCenter = new THREE.Vector3(
+    0,
+    modelSize.y * 0.5,
+    0
+  );
 
-  
-
-  const orbitCenter = new THREE.Vector3(0, modelSize.y * 0.5, 0);
-
+  // =========================
   // CAMERA
-  const orbitCenter = new THREE.Vector3(0, modelSize.y * 0.5, 0);
+  // =========================
+  camera.position.set(
+    0,
+    orbitCenter.y + 0.4,
+    fitDistance
+  );
 
-camera.position.set(0, orbitCenter.y + 0.4, fitDistance);
+  camera.lookAt(orbitCenter);
 
-controls.target.copy(orbitCenter);
-controls.update();
+  // =========================
+  // CONTROLS
+  // =========================
+  controls.target.copy(orbitCenter);
 
   controls.minDistance = fitDistance * 0.6;
   controls.maxDistance = fitDistance * 1.8;
