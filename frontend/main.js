@@ -1,10 +1,11 @@
 import * as THREE from './libs/three.module.js';
-import { GLTFLoader } from './libs/GLTFLoader.js';
+
 import { OrbitControls } from './libs/OrbitControls.js';
 import { AnimationBrain } from './animation/animationBrain.js';
 import { BlinkSystem } from './animation/blinkSystem.js';
 import { AvatarBehaviorEngine } from "./avatarBehaviorEngine.js";
 import { FaceController } from "./animation/FaceController.js";
+import { GLTFLoader } from './libs/GLTFLoader.js';
 
 /* ========================= */
 let face;
@@ -37,7 +38,12 @@ const behavior = new AvatarBehaviorEngine();
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -46,7 +52,7 @@ document.body.appendChild(renderer.domElement);
 /* ========================= CONTROLS */
 const controls = new OrbitControls(camera, renderer.domElement);
 
-controls.enableRotate = false;   // 🚫 kamera dönmeyecek
+controls.enableRotate = false;   // ❗ model rotate edeceğiz
 controls.enablePan = false;
 controls.enableZoom = true;
 controls.screenSpacePanning = false;
@@ -61,6 +67,8 @@ window.addEventListener("mousemove", (e) => {
 });
 
 /* ========================= LOAD MODEL */
+const loader = new GLTFLoader();
+
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
@@ -68,13 +76,11 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   scene.add(model);
 
-  // SCALE
+  // ========================= SCALE
   model.scale.setScalar(0.01);
   model.updateWorldMatrix(true, true);
 
-  // =========================
-  // BBOX FIX
-  // =========================
+  // ========================= BBOX
   const box = new THREE.Box3().setFromObject(model);
 
   modelCenter = box.getCenter(new THREE.Vector3());
@@ -82,53 +88,36 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   model.position.sub(modelCenter);
 
-  const maxDim = Math.max(
-    modelSize.x,
-    modelSize.y,
-    modelSize.z
-  );
+  const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
+  const fitDistance = maxDim * 2.8;
 
-  const fitDistance = maxDim * 3;
-
-  // =========================
-  // ORBIT CENTER (TEK DEĞİŞKEN)
-  // =========================
+  // ========================= ORBIT CENTER
   const orbitCenter = new THREE.Vector3(
     0,
     modelSize.y * 0.5,
     0
   );
 
-  // =========================
-  // CAMERA
-  // =========================
+  // ========================= CAMERA FIX
   camera.position.set(
     0,
     orbitCenter.y + 0.4,
     fitDistance
   );
 
-  camera.lookAt(orbitCenter);
+  // ❗ camera.lookAt KALDIRILDI (drift yapıyordu)
 
-  // =========================
-  // CONTROLS
-  // =========================
+  // ========================= CONTROLS FIX
   controls.target.copy(orbitCenter);
-
-  controls.minDistance = fitDistance * 0.6;
-  controls.maxDistance = fitDistance * 1.8;
-
-  controls.minPolarAngle = 0.8;
-  controls.maxPolarAngle = Math.PI - 0.8;
-
   controls.update();
 
+  // ========================= SYSTEMS
   blinkSystem = new BlinkSystem(characterModel);
 
   animate();
 });
 
-/* ========================= UPDATE */
+/* ========================= CHARACTER UPDATE */
 function animateCharacter(delta) {
 
   if (!characterModel) return;
@@ -139,13 +128,13 @@ function animateCharacter(delta) {
 
   breathTime += delta * 2;
 
-  // idle bob (sadece Y POSITION)
+  // idle motion
   if (!isTalking) {
     characterModel.position.y = Math.sin(breathTime) * 0.015;
   }
 
-  // ✅ TEK ROTATION SYSTEM
-  const targetY = mouse.x * 1.2;
+  // ========================= 🔥 CLEAN ROTATION (FIXED)
+  const targetY = mouse.x * Math.PI * 0.5;
 
   characterModel.rotation.y = THREE.MathUtils.lerp(
     characterModel.rotation.y,
@@ -153,18 +142,20 @@ function animateCharacter(delta) {
     0.08
   );
 
-  // HEAD LOOK
-  target.set(mouse.x * 0.6, 1.2 + mouse.y * 0.3, 1.5);
-  smoothTarget.lerp(target, 0.1);
-
+  // ========================= HEAD LOOK
   if (head && !isTalking) {
+    target.set(mouse.x * 0.6, 1.2 + mouse.y * 0.3, 1.5);
+    smoothTarget.lerp(target, 0.1);
+
     const temp = smoothTarget.clone();
     head.parent.worldToLocal(temp);
     head.lookAt(temp);
   }
 }
+
 /* ========================= LOOP */
 function animate() {
+
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
@@ -178,9 +169,8 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
-/* =========================
-   STATE
-========================= */
+
+/* ========================= STATE */
 function setState(state) {
   behavior.setState(state);
 
@@ -188,9 +178,7 @@ function setState(state) {
   isThinking = state === "thinking";
 }
 
-/* =========================
-   CHAT
-========================= */
+/* ========================= CHAT */
 let isSending = false;
 
 async function sendMessage() {
@@ -216,7 +204,7 @@ async function sendMessage() {
     const data = await res.json();
 
     if (data.reply) {
-      speak(data.reply); // 🔥 TEK ENTRY POINT
+      speak(data.reply);
     }
 
   } catch (err) {
@@ -226,10 +214,10 @@ async function sendMessage() {
     isSending = false;
   }
 }
-/* =========================
-   SPEAK
-========================= */
+
+/* ========================= SPEAK */
 async function speak(text) {
+
   try {
     const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/tts", {
       method: "POST",
@@ -240,9 +228,7 @@ async function speak(text) {
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
 
-    if (currentAudio) {
-      currentAudio.pause();
-    }
+    if (currentAudio) currentAudio.pause();
 
     const audio = new Audio(url);
     currentAudio = audio;
@@ -268,13 +254,13 @@ async function speak(text) {
   }
 }
 
-/* =========================
-   UI
-========================= */
+/* ========================= UI */
 window.addEventListener("DOMContentLoaded", () => {
+
   document.getElementById("sendBtn")?.addEventListener("click", sendMessage);
 
   document.getElementById("userInput")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") sendMessage();
   });
+
 });
