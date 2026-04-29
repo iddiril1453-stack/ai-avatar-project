@@ -6,8 +6,8 @@ import { BlinkSystem } from './animation/blinkSystem.js';
 import { AvatarBehaviorEngine } from "./avatarBehaviorEngine.js";
 import { FaceController } from "./animation/FaceController.js";
 
+/* ========================= */
 let face;
-
 let head = null;
 let characterModel;
 
@@ -22,244 +22,139 @@ let breathTime = 0;
 let currentAudio = null;
 
 let modelSize = new THREE.Vector3();
-
 let modelCenter = new THREE.Vector3();
 
+/* ========================= */
 const mouse = { x: 0, y: 0 };
 const target = new THREE.Vector3();
 const smoothTarget = new THREE.Vector3();
 const clock = new THREE.Clock();
 
-/* =========================
-   BEHAVIOR ENGINE
-========================= */
+/* ========================= */
 const behavior = new AvatarBehaviorEngine();
 
-/* =========================
-   SCENE / CAMERA / RENDERER
-========================= */
+/* ========================= SCENE */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 scene.add(new THREE.AxesHelper(5));
 
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-const renderer = new THREE.WebGLRenderer({
-  antialias: true
-});
-
-renderer.setSize(
-  window.innerWidth,
-  window.innerHeight
-);
-
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-/* =========================
-   ORBIT CONTROLS
-========================= */
-const controls = new OrbitControls(
-  camera,
-  renderer.domElement
-);
-
+/* ========================= CONTROLS */
+const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.enablePan = false;
 controls.enableZoom = true;
-
-controls.minPolarAngle = 0.8;
-controls.maxPolarAngle = 2.2;
-
-controls.minDistance = 2;
-controls.maxDistance = 8;
-
 controls.screenSpacePanning = false;
 
-/* =========================
-   LIGHT
-========================= */
-const hemiLight = new THREE.HemisphereLight(
-  0xffffff,
-  0x444444,
-  2
-);
+/* ========================= LIGHT */
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
 
-scene.add(hemiLight);
-
-/* =========================
-   MOUSE
-========================= */
+/* ========================= MOUSE */
 window.addEventListener("mousemove", (e) => {
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 });
-/* =========================
-   LOAD MODEL
-========================= */
+
+/* ========================= LOAD MODEL */
 const loader = new GLTFLoader();
 
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
+  characterModel = model;
 
-  // =========================
-  // ROOT FIX (DOĞRU VERSION)
-  // =========================
-  const wrapper = new THREE.Group();
-  const anchor = new THREE.Object3D();
+  scene.add(model);
 
-  scene.add(anchor);
-  anchor.add(wrapper);
-  wrapper.add(model);
+  // SCALE
+  model.scale.setScalar(0.01);
+  model.updateWorldMatrix(true, true);
 
- // =========================
-// SCALE
-// =========================
-model.scale.setScalar(0.01);
-model.updateWorldMatrix(true, true);
+  // BBOX
+  const box = new THREE.Box3().setFromObject(model);
 
-// =========================
-// BBOX + STABLE PIVOT FIX
-// =========================
-const box = new THREE.Box3().setFromObject(model);
+  modelCenter = box.getCenter(new THREE.Vector3());
+  modelSize = box.getSize(new THREE.Vector3());
 
-modelCenter = box.getCenter(new THREE.Vector3());
-modelSize = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
+  const fitDistance = maxDim * 3;
 
-const maxDim = Math.max(
-  modelSize.x,
-  modelSize.y,
-  modelSize.z
-);
+  // CENTER FIX
+  model.position.x -= modelCenter.x;
+  model.position.y -= modelCenter.y;
+  model.position.z -= modelCenter.z;
+  model.position.y += modelSize.y * 0.5;
 
-// modeli gerçek merkeze al
-model.position.x -= modelCenter.x;
-model.position.y -= modelCenter.y;
-model.position.z -= modelCenter.z;
+  const orbitCenter = new THREE.Vector3(0, modelSize.y * 0.5, 0);
 
-// ayakları zemine oturt
-model.position.y += modelSize.y * 0.5;
+  // CAMERA
+  camera.position.set(0, orbitCenter.y + 0.4, fitDistance);
+  camera.lookAt(orbitCenter);
 
-// =========================
-// TEK SABİT ORBIT CENTER
-// =========================
-const orbitCenter = new THREE.Vector3(
-  0,
-  modelSize.y * 0.5,
-  0
-);
+  // CONTROLS
+  controls.target.copy(orbitCenter);
 
-// =========================
-// CAMERA FIX
-// =========================
-const fitDistance = maxDim * 2.8;
+  controls.minDistance = fitDistance * 0.6;
+  controls.maxDistance = fitDistance * 1.8;
 
-camera.position.set(
-  0,
-  orbitCenter.y + 0.3,
-  fitDistance
-);
+  controls.minPolarAngle = 0.8;
+  controls.maxPolarAngle = Math.PI - 0.8;
 
-camera.near = 0.1;
-camera.far = 1000;
-camera.updateProjectionMatrix();
+  controls.update();
 
-// =========================
-// ORBIT CONTROLS FIX
-// =========================
-controls.target.copy(orbitCenter);
+  blinkSystem = new BlinkSystem(characterModel);
 
-controls.enablePan = false;
-controls.enableZoom = true;
-controls.screenSpacePanning = false;
-controls.enableDamping = true;
-
-controls.minPolarAngle = 0.8;
-controls.maxPolarAngle = Math.PI - 0.8;
-
-controls.minDistance = fitDistance * 0.6;
-controls.maxDistance = fitDistance * 1.8;
-
-camera.lookAt(orbitCenter);
-controls.update();
-
-// =========================
-// SYSTEMS
-// =========================
-blinkSystem = new BlinkSystem(characterModel);
-
-animate();
+  animate();
 });
 
-/* =========================
-   STATE BRIDGE
-========================= */
-behavior.bind({
-  onStateChange: (state, intensity) => {
-    if (brain) brain.setState(state, intensity);
-
-    isTalking = state === "talking";
-    isThinking = state === "thinking";
-  }
-});
-
-/* =========================
-   CHARACTER UPDATE
-========================= */
+/* ========================= UPDATE */
 function animateCharacter(delta) {
+
   if (!characterModel) return;
 
   const t = clock.getElapsedTime();
 
-  if (blinkSystem) {
-    blinkSystem.update(delta, isTalking);
-  }
+  if (blinkSystem) blinkSystem.update(delta, isTalking);
 
   breathTime += delta * 2;
 
+  // idle movement
   if (!isTalking) {
-    characterModel.position.y = -0.3 + Math.sin(breathTime) * 0.015;
-    characterModel.rotation.y = Math.sin(breathTime * 0.5) * 0.03;
+    characterModel.position.y = Math.sin(breathTime) * 0.015;
   }
 
-  target.set(
-    mouse.x * 0.8,
-    1.2 + mouse.y * 0.4,
-    1.5
+  // MODEL ROTATE (FIXED)
+  const targetRotY = mouse.x * 0.8;
+
+  characterModel.rotation.y = THREE.MathUtils.lerp(
+    characterModel.rotation.y,
+    targetRotY,
+    0.08
   );
 
-  if (isTalking) {
-    target.y += Math.sin(t * 10) * 0.02;
-  }
+  // HEAD LOOK
+  target.set(mouse.x * 0.6, 1.2 + mouse.y * 0.3, 1.5);
+  smoothTarget.lerp(target, 0.1);
 
-  smoothTarget.lerp(target, 0.12);
-
-  if (head) {
-    if (!isTalking) {
-      const temp = smoothTarget.clone();
-      head.parent.worldToLocal(temp);
-      head.lookAt(temp.clone().lerp(head.position, 0.5));
-    }
+  if (head && !isTalking) {
+    const temp = smoothTarget.clone();
+    head.parent.worldToLocal(temp);
+    head.lookAt(temp);
   }
 }
 
-/* =========================
-   MAIN LOOP
-========================= */
+/* ========================= LOOP */
 function animate() {
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
 
   if (mixer) mixer.update(delta);
-
   if (face) face.update(delta);
-
   if (brain) brain.update(delta, isTalking, isThinking);
 
   animateCharacter(delta);
@@ -267,7 +162,6 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
-
 /* =========================
    STATE
 ========================= */
