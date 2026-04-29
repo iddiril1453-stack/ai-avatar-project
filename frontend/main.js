@@ -80,10 +80,14 @@ window.addEventListener("mousemove", (e) => {
 /* ========================= LOAD MODEL */
 const loader = new GLTFLoader();
 
+console.log("LOADER CREATED");
+
 loader.load(
   "./model.glb?v=" + Date.now(),
 
   (gltf) => {
+
+    console.log("MODEL LOADED ✅");
 
     const model = gltf.scene;
     characterModel = model;
@@ -99,13 +103,44 @@ loader.load(
 
     model.position.sub(center);
 
+    console.log("MODEL SIZE:", size);
+    console.log("MODEL CENTER:", center);
+
+    /* 🔥 DEBUG VISUAL HELP */
+    const helper = new THREE.BoxHelper(model, 0xff0000);
+    scene.add(helper);
+
+    /* 🔥 MATERIAL + VISIBILITY FIX */
     model.traverse((child) => {
       if (child.isMesh) {
+
         child.frustumCulled = false;
         child.castShadow = true;
         child.receiveShadow = true;
+
+        child.visible = true;
+
+        if (child.material) {
+          child.material.needsUpdate = true;
+          child.material.transparent = false;
+          child.material.opacity = 1;
+        }
+
+        console.log("MESH:", child.name);
       }
     });
+
+    console.log("MODEL READY IN SCENE ✅");
+  },
+
+  (xhr) => {
+    console.log("LOADING:", (xhr.loaded / xhr.total * 100).toFixed(2) + "%");
+  },
+
+  (error) => {
+    console.error("❌ MODEL LOAD ERROR:", error);
+  }
+);
 
     /* CAMERA FIT */
     const maxDim = Math.max(size.x, size.y, size.z);
