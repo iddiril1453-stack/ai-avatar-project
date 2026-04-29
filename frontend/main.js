@@ -42,7 +42,6 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 scene.add(new THREE.AxesHelper(5));
 
-
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -50,43 +49,48 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
+const renderer = new THREE.WebGLRenderer({
+  antialias: true
+});
+
+renderer.setSize(
+  window.innerWidth,
+  window.innerHeight
+);
+
 document.body.appendChild(renderer.domElement);
 
-const controls = new OrbitControls(camera, renderer.domElement);
+/* =========================
+   ORBIT CONTROLS
+========================= */
+const controls = new OrbitControls(
+  camera,
+  renderer.domElement
+);
+
 controls.enableDamping = true;
-
-controls.enablePan = false;
-controls.maxPolarAngle = Math.PI * 0.55;
-controls.minPolarAngle = Math.PI * 0.35;
-
-
-const dist = Math.max(modelSize.x, modelSize.y, modelSize.z) * 2.5;
-
-// 🔥 SINGLE ORBIT CENTER FIX
-const orbitCenter = new THREE.Vector3(0, modelSize.y * 0.5, 0);
-
-camera.position.set(0, orbitCenter.y + dist * 0.2, dist);
-
-controls.target.copy(orbitCenter);
-controls.update();
-
-camera.lookAt(orbitCenter);
-
-
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2);
-scene.add(hemiLight);
 controls.enablePan = false;
 controls.enableZoom = true;
 
-controls.minPolarAngle = 0.4;
-controls.maxPolarAngle = 2.6;
+controls.minPolarAngle = 0.8;
+controls.maxPolarAngle = 2.2;
 
 controls.minDistance = 2;
 controls.maxDistance = 8;
 
 controls.screenSpacePanning = false;
+
+/* =========================
+   LIGHT
+========================= */
+const hemiLight = new THREE.HemisphereLight(
+  0xffffff,
+  0x444444,
+  2
+);
+
+scene.add(hemiLight);
+
 /* =========================
    MOUSE
 ========================= */
@@ -94,7 +98,6 @@ window.addEventListener("mousemove", (e) => {
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 });
-
 /* =========================
    LOAD MODEL
 ========================= */
@@ -129,8 +132,11 @@ const box = new THREE.Box3().setFromObject(model);
 modelCenter = box.getCenter(new THREE.Vector3());
 modelSize = box.getSize(new THREE.Vector3());
 
+// modeli merkeze al
 model.position.sub(modelCenter);
-model.position.y = -modelSize.y * 0.5;
+
+// ayakları yere oturt (NEGATIVE değil)
+model.position.y += modelSize.y * 0.5;
 
 const maxDim = Math.max(
   modelSize.x,
@@ -138,48 +144,42 @@ const maxDim = Math.max(
   modelSize.z
 );
 
-const centerWorld = new THREE.Vector3(
-  0,
-  1.2,
-  0
-);
-
-const dist = 4.5;
-
+// gerçek orbit merkezi
 const orbitCenter = new THREE.Vector3(
   0,
-  1.2,
+  modelSize.y * 0.5,
   0
 );
 
+// kamera daha stabil
 camera.position.set(
   0,
-  1.6,
-  dist
+  orbitCenter.y,
+  maxDim * 2.2
 );
 
 controls.target.copy(orbitCenter);
 camera.lookAt(orbitCenter);
 controls.update();
 
-  // =========================
-  // ORBIT LOCK (STABLE)
-  // =========================
-  controls.enablePan = false;
-  controls.enableZoom = true;
-  controls.screenSpacePanning = false;
 
-  controls.minPolarAngle = 0.3;
-  controls.maxPolarAngle = Math.PI - 0.3;
+// =========================
+// ORBIT LOCK (STABLE)
+// =========================
+controls.enablePan = false;
+controls.enableZoom = true;
+controls.screenSpacePanning = false;
 
-  controls.minDistance = maxDim * 1.2;
-  controls.maxDistance = maxDim * 3.5;
+controls.minPolarAngle = 0.8;
+controls.maxPolarAngle = 2.2;
 
-  blinkSystem = new BlinkSystem(characterModel);
+controls.minDistance = maxDim * 1.5;
+controls.maxDistance = maxDim * 3.0;
 
-  animate();
+blinkSystem = new BlinkSystem(characterModel);
+
+animate();
 });
-
 /* =========================
    STATE BRIDGE
 ========================= */
