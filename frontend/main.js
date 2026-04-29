@@ -117,26 +117,19 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   anchor.add(wrapper);
   wrapper.add(model);
 
-  // =========================
-  // SCALE
-  // =========================
-  model.scale.setScalar(0.01);
+ // =========================
+// SCALE
+// =========================
+model.scale.setScalar(0.01);
+model.updateWorldMatrix(true, true);
 
-  model.updateWorldMatrix(true, true);
-
-  // =========================
-  // BBOX
-  // =========================
+// =========================
+// BBOX + STABLE PIVOT FIX
+// =========================
 const box = new THREE.Box3().setFromObject(model);
 
 modelCenter = box.getCenter(new THREE.Vector3());
 modelSize = box.getSize(new THREE.Vector3());
-
-// modeli merkeze al
-model.position.sub(modelCenter);
-
-// ayakları yere oturt (NEGATIVE değil)
-model.position.y += modelSize.y * 0.5;
 
 const maxDim = Math.max(
   modelSize.x,
@@ -144,42 +137,65 @@ const maxDim = Math.max(
   modelSize.z
 );
 
-// gerçek orbit merkezi
+// modeli gerçek merkeze al
+model.position.x -= modelCenter.x;
+model.position.y -= modelCenter.y;
+model.position.z -= modelCenter.z;
+
+// ayakları zemine oturt
+model.position.y += modelSize.y * 0.5;
+
+// =========================
+// TEK SABİT ORBIT CENTER
+// =========================
 const orbitCenter = new THREE.Vector3(
   0,
   modelSize.y * 0.5,
   0
 );
 
-// kamera daha stabil
+// =========================
+// CAMERA FIX
+// =========================
+const fitDistance = maxDim * 2.8;
+
 camera.position.set(
   0,
-  orbitCenter.y,
-  maxDim * 2.2
+  orbitCenter.y + 0.3,
+  fitDistance
 );
 
+camera.near = 0.1;
+camera.far = 1000;
+camera.updateProjectionMatrix();
+
+// =========================
+// ORBIT CONTROLS FIX
+// =========================
 controls.target.copy(orbitCenter);
-camera.lookAt(orbitCenter);
-controls.update();
 
-
-// =========================
-// ORBIT LOCK (STABLE)
-// =========================
 controls.enablePan = false;
 controls.enableZoom = true;
 controls.screenSpacePanning = false;
+controls.enableDamping = true;
 
 controls.minPolarAngle = 0.8;
-controls.maxPolarAngle = 2.2;
+controls.maxPolarAngle = Math.PI - 0.8;
 
-controls.minDistance = maxDim * 1.5;
-controls.maxDistance = maxDim * 3.0;
+controls.minDistance = fitDistance * 0.6;
+controls.maxDistance = fitDistance * 1.8;
 
+camera.lookAt(orbitCenter);
+controls.update();
+
+// =========================
+// SYSTEMS
+// =========================
 blinkSystem = new BlinkSystem(characterModel);
 
 animate();
 });
+
 /* =========================
    STATE BRIDGE
 ========================= */
