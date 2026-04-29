@@ -80,8 +80,6 @@ window.addEventListener("mousemove", (e) => {
 /* ========================= LOAD MODEL */
 const loader = new GLTFLoader();
 
-console.log("LOADER CREATED");
-
 loader.load(
   "./model.glb?v=" + Date.now(),
 
@@ -96,25 +94,30 @@ loader.load(
 
     model.scale.setScalar(0.15);
 
+    /* =========================
+       SAFE CENTERING
+    ========================= */
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
 
     model.position.sub(center);
 
-    console.log("MODEL SIZE:", size);
-    console.log("MODEL CENTER:", center);
-
+    /* =========================
+       DEBUG HELPER
+    ========================= */
     const helper = new THREE.BoxHelper(model, 0xff0000);
     scene.add(helper);
 
+    /* =========================
+       MATERIAL FIX (MESHY SAFE)
+    ========================= */
     model.traverse((child) => {
       if (child.isMesh) {
 
         child.frustumCulled = false;
         child.castShadow = true;
         child.receiveShadow = true;
-
         child.visible = true;
 
         if (child.material) {
@@ -122,23 +125,12 @@ loader.load(
           child.material.transparent = false;
           child.material.opacity = 1;
         }
-
-        console.log("MESH:", child.name);
       }
     });
 
-    console.log("MODEL READY IN SCENE ✅");
-  },
-
-  (xhr) => {
-    console.log("LOADING:", (xhr.loaded / xhr.total * 100).toFixed(2) + "%");
-  },
-
-  (error) => {
-    console.error("❌ MODEL LOAD ERROR:", error);
-  }
-);
-    /* CAMERA FIT */
+    /* =========================
+       CAMERA FIT
+    ========================= */
     const maxDim = Math.max(size.x, size.y, size.z);
     const fitDistance = maxDim * 2.5;
 
@@ -152,50 +144,22 @@ loader.load(
 
     controls.update();
 
+    /* =========================
+       SYSTEM INIT
+    ========================= */
     blinkSystem = new BlinkSystem(characterModel);
 
     console.log("MODEL READY ✅");
   },
 
-  undefined,
-  (err) => {
-    console.error("MODEL LOAD ERROR ❌", err);
+  (xhr) => {
+    console.log("LOADING:", (xhr.loaded / xhr.total * 100).toFixed(2) + "%");
+  },
+
+  (error) => {
+    console.error("❌ MODEL LOAD ERROR:", error);
   }
 );
-
-/* ========================= CHARACTER */
-function animateCharacter(delta) {
-
-  if (!characterModel) return;
-
-  if (blinkSystem) blinkSystem.update(delta, isTalking);
-
-  breathTime += delta * 2;
-
-  if (!isTalking) {
-    characterModel.position.y = Math.sin(breathTime) * 0.015;
-  }
-}
-
-/* ========================= LOOP */
-function animate() {
-
-  requestAnimationFrame(animate);
-
-  const delta = clock.getDelta();
-
-  if (mixer) mixer.update(delta);
-  if (face) face.update(delta);
-  if (brain) brain.update(delta, isTalking, isThinking);
-
-  animateCharacter(delta);
-
-  controls.update();
-  renderer.render(scene, camera);
-}
-
-animate();
-
 /* ========================= STATE */
 function setState(state) {
   behavior.setState(state);
