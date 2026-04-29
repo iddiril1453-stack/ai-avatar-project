@@ -70,7 +70,6 @@ window.addEventListener("mousemove", (e) => {
 });
 
 /* ========================= LOAD MODEL */
-```javascript
 const loader = new GLTFLoader();
 
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
@@ -150,7 +149,6 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   animate();
 });
-```
 
 
 /* ========================= CHARACTER UPDATE */
