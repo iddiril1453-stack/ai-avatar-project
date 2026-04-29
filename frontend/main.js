@@ -55,6 +55,9 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableRotate = false;
 controls.enablePan = false;
 controls.enableZoom = true;
+
+controls.minPolarAngle = Math.PI / 2.2;
+controls.maxPolarAngle = Math.PI / 2.2;
 controls.screenSpacePanning = false;
 
 /* ========================= LIGHT */
@@ -74,27 +77,23 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   const model = gltf.scene;
 
   // 🔥 SCALE FIRST
-  model.scale.setScalar(0.01);
+  model.scale.setScalar(0.08);
   model.updateWorldMatrix(true, true);
 
   // 🔥 BBOX FIRST (IMPORTANT FIX)
-  const box = new THREE.Box3().setFromObject(model);
+ const pivot = new THREE.Group();
+scene.add(pivot);
+characterModel = pivot;
 
-  modelCenter = box.getCenter(new THREE.Vector3());
-  modelSize = box.getSize(new THREE.Vector3());
+const box = new THREE.Box3().setFromObject(model);
+modelCenter = box.getCenter(new THREE.Vector3());
+modelSize = box.getSize(new THREE.Vector3());
+
+model.position.sub(modelCenter);
+pivot.add(model);
 
   const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
   const fitDistance = maxDim * 2.8;
-
-  // 🔥 PIVOT SYSTEM CORRECT
-  const pivot = new THREE.Group();
-  scene.add(pivot);
-  pivot.add(model);
-
-  characterModel = pivot;
-
-  // model center fix
-  model.position.sub(modelCenter);
 
   // orbit center
   const orbitCenter = new THREE.Vector3(
@@ -103,12 +102,10 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     0
   );
 
-  // camera
-  camera.position.set(
-    0,
-    orbitCenter.y + 0.4,
-    fitDistance
-  );
+ const fitDistance = Math.max(modelSize.x, modelSize.y, modelSize.z) * 1.2;
+
+camera.position.set(0, modelSize.y * 0.5, fitDistance);
+controls.target.set(0, modelSize.y * 0.5, 0);
 
   controls.target.copy(orbitCenter);
   controls.update();
@@ -134,7 +131,7 @@ function animateCharacter(delta) {
   }
 
   // 🔥 FIXED ROTATION (ONLY ONE targetY)
-  const targetY = mouse.x * Math.PI * 0.4;
+  const targetY = mouse.x * Math.PI;
 
   characterModel.rotation.y = THREE.MathUtils.lerp(
     characterModel.rotation.y,
