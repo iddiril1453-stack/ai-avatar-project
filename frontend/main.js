@@ -33,7 +33,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 scene.fog = new THREE.Fog(0x222222, 10, 50);
 
-/* 🔥 DEBUG CUBE */
+/* DEBUG CUBE */
 const testCube = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
   new THREE.MeshBasicMaterial({ color: 0xff0000 })
@@ -94,24 +94,18 @@ loader.load(
 
     model.scale.setScalar(0.15);
 
-    /* =========================
-       SAFE CENTERING
-    ========================= */
+    /* SAFE CENTERING */
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
 
     model.position.sub(center);
 
-    /* =========================
-       DEBUG HELPER
-    ========================= */
+    /* DEBUG */
     const helper = new THREE.BoxHelper(model, 0xff0000);
     scene.add(helper);
 
-    /* =========================
-       MATERIAL FIX (MESHY SAFE)
-    ========================= */
+    /* MATERIAL FIX */
     model.traverse((child) => {
       if (child.isMesh) {
 
@@ -128,9 +122,7 @@ loader.load(
       }
     });
 
-    /* =========================
-       CAMERA FIT
-    ========================= */
+    /* CAMERA FIT */
     const maxDim = Math.max(size.x, size.y, size.z);
     const fitDistance = maxDim * 2.5;
 
@@ -144,9 +136,6 @@ loader.load(
 
     controls.update();
 
-    /* =========================
-       SYSTEM INIT
-    ========================= */
     blinkSystem = new BlinkSystem(characterModel);
 
     console.log("MODEL READY ✅");
@@ -160,11 +149,74 @@ loader.load(
     console.error("❌ MODEL LOAD ERROR:", error);
   }
 );
+
+/* ========================= ANIMATE */
+function animate() {
+
+  requestAnimationFrame(animate);
+
+  const delta = clock.getDelta();
+
+  if (mixer) mixer.update(delta);
+  if (face) face.update(delta);
+  if (brain) brain.update(delta, isTalking, isThinking);
+
+  if (characterModel && blinkSystem) {
+    blinkSystem.update(delta, isTalking);
+    breathTime += delta * 2;
+
+    if (!isTalking) {
+      characterModel.position.y = Math.sin(breathTime) * 0.015;
+    }
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
 /* ========================= STATE */
 function setState(state) {
   behavior.setState(state);
   isTalking = state === "talking";
   isThinking = state === "thinking";
+}
+
+/* ========================= SEND MESSAGE (FIXED GLOBAL) */
+async function sendMessage() {
+
+  const input = document.getElementById("userInput");
+  const text = input?.value;
+
+  if (!text) return;
+
+  input.value = "";
+
+  setState("thinking");
+
+  try {
+    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await res.json();
+
+    if (data.reply) {
+      speak(data.reply);
+    }
+
+  } catch (err) {
+    console.error(err);
+    setState("idle");
+  }
+}
+
+/* ========================= SPEAK (SAFE PLACEHOLDER) */
+async function speak(text) {
+  console.log("SPEAK:", text);
+  setState("talking");
 }
 
 /* ========================= UI */
