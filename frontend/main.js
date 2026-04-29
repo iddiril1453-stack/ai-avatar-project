@@ -90,6 +90,10 @@ modelCenter = box.getCenter(new THREE.Vector3());
 modelSize = box.getSize(new THREE.Vector3());
 
 model.position.sub(modelCenter);
+
+// 🔥 BURAYA EKLE
+model.position.y += modelSize.y * 0.5;
+
 pivot.add(model);
 
   const maxDim = Math.max(
