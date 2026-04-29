@@ -1,5 +1,4 @@
 import * as THREE from './libs/three.module.js';
-
 import { OrbitControls } from './libs/OrbitControls.js';
 import { AnimationBrain } from './animation/animationBrain.js';
 import { BlinkSystem } from './animation/blinkSystem.js';
@@ -37,7 +36,9 @@ const behavior = new AvatarBehaviorEngine();
 /* ========================= SCENE */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
+scene.fog = new THREE.Fog(0x222222, 10, 50);
 
+/* ========================= CAMERA */
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -45,8 +46,14 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
+camera.position.set(0, 2, 5);
+camera.lookAt(0, 1, 0);
+
+/* ========================= RENDERER */
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setClearColor(0x222222, 1);
 document.body.appendChild(renderer.domElement);
 
 /* ========================= CONTROLS */
@@ -56,11 +63,10 @@ controls.enableRotate = true;
 controls.enablePan = false;
 controls.enableZoom = true;
 
-controls.minPolarAngle = Math.PI / 2.2;
-controls.maxPolarAngle = Math.PI / 2.2;
-controls.screenSpacePanning = false;
-
 /* ========================= LIGHT */
+const ambient = new THREE.AmbientLight(0xffffff, 1.2);
+scene.add(ambient);
+
 const dirLight = new THREE.DirectionalLight(0xffffff, 3);
 dirLight.position.set(5, 10, 5);
 scene.add(dirLight);
@@ -82,41 +88,33 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  // =========================
-  // MODEL SCALE
-  // =========================
   model.scale.setScalar(0.15);
 
-  // =========================
-  // PIVOT GROUP
-  // =========================
   const pivot = new THREE.Group();
   scene.add(pivot);
   pivot.add(model);
 
   characterModel = pivot;
 
-  // scale sonrası bbox hesapla
   model.updateWorldMatrix(true, true);
 
   const box = new THREE.Box3().setFromObject(model);
   modelCenter = box.getCenter(new THREE.Vector3());
   modelSize = box.getSize(new THREE.Vector3());
 
-scene.add(new THREE.AxesHelper(5));
+  scene.add(new THREE.AxesHelper(5));
 
-  // modeli merkeze al
- model.position.set(0, 0, 0);
+  model.position.set(0, 0, 0);
 
-  // =========================
-  // CAMERA
-  // =========================
-  const maxDim = Math.max(
-    modelSize.x,
-    modelSize.y,
-    modelSize.z
-  );
+  model.traverse((child) => {
+    if (child.isMesh) {
+      child.frustumCulled = false;
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
 
+  const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
   const fitDistance = maxDim * 1.4;
 
   const orbitCenter = new THREE.Vector3(
@@ -125,37 +123,22 @@ scene.add(new THREE.AxesHelper(5));
     0
   );
 
- camera.position.set(0, orbitCenter.y, fitDistance);
-
-  // =========================
-  // CONTROLS
-  // =========================
-  controls.enableRotate = true;
-  controls.enablePan = false;
-  controls.enableZoom = true;
+  camera.position.set(0, orbitCenter.y, fitDistance);
+  camera.lookAt(orbitCenter);
 
   controls.target.copy(orbitCenter);
-
   controls.minDistance = fitDistance * 0.7;
   controls.maxDistance = fitDistance * 3.0;
-
-  controls.minPolarAngle = 0;
-  controls.maxPolarAngle = Math.PI;
-
   controls.update();
 
   blinkSystem = new BlinkSystem(characterModel);
 
-  animate();
 });
-
 
 /* ========================= CHARACTER UPDATE */
 function animateCharacter(delta) {
 
   if (!characterModel) return;
-
-  const t = clock.getElapsedTime();
 
   if (blinkSystem) blinkSystem.update(delta, isTalking);
 
@@ -165,10 +148,6 @@ function animateCharacter(delta) {
     characterModel.position.y = Math.sin(breathTime) * 0.015;
   }
 
-  // 🔥 FIXED ROTATION (ONLY ONE targetY)
-
-
-  // HEAD LOOK
   if (head && !isTalking) {
     target.set(mouse.x * 0.6, 1.2 + mouse.y * 0.3, 1.5);
     smoothTarget.lerp(target, 0.1);
@@ -179,7 +158,7 @@ function animateCharacter(delta) {
   }
 }
 
-/* ========================= LOOP */
+/* ========================= LOOP (FIX: ALWAYS RUNNING) */
 function animate() {
 
   requestAnimationFrame(animate);
@@ -195,6 +174,10 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
+
+/* 🔥 START LOOP IMMEDIATELY */
+animate();
+
 /* ========================= STATE */
 function setState(state) {
   behavior.setState(state);
