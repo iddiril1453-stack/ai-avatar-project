@@ -61,7 +61,13 @@ controls.maxPolarAngle = Math.PI / 2.2;
 controls.screenSpacePanning = false;
 
 /* ========================= LIGHT */
-scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
+const dirLight = new THREE.DirectionalLight(0xffffff, 3);
+dirLight.position.set(5, 10, 5);
+scene.add(dirLight);
+
+const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.5);
+dirLight2.position.set(-5, 5, -5);
+scene.add(dirLight2);
 
 /* ========================= MOUSE */
 window.addEventListener("mousemove", (e) => {
@@ -97,11 +103,10 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   modelCenter = box.getCenter(new THREE.Vector3());
   modelSize = box.getSize(new THREE.Vector3());
 
-  // modeli merkeze al
-  model.position.sub(modelCenter);
+scene.add(new THREE.AxesHelper(5));
 
-  // ayakları zemine oturt
-  model.position.y += modelSize.y * 0.5;
+  // modeli merkeze al
+ model.position.set(0, 0, 0);
 
   // =========================
   // CAMERA
@@ -120,13 +125,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
     0
   );
 
-  camera.position.set(
-    0,
-    orbitCenter.y,
-    fitDistance
-  );
-
-  camera.lookAt(orbitCenter);
+ camera.position.set(0, orbitCenter.y, fitDistance);
 
   // =========================
   // CONTROLS
