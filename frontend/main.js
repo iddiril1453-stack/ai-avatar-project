@@ -21,22 +21,24 @@ let isThinking = false;
 let breathTime = 0;
 let currentAudio = null;
 
-let modelSize = new THREE.Vector3();
-let modelCenter = new THREE.Vector3();
-
-/* ========================= */
 const mouse = { x: 0, y: 0 };
 const target = new THREE.Vector3();
 const smoothTarget = new THREE.Vector3();
 const clock = new THREE.Clock();
 
-/* ========================= */
 const behavior = new AvatarBehaviorEngine();
 
 /* ========================= SCENE */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 scene.fog = new THREE.Fog(0x222222, 10, 50);
+
+/* 🔥 DEBUG CUBE */
+const testCube = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial({ color: 0xff0000 })
+);
+scene.add(testCube);
 
 /* ========================= CAMERA */
 const camera = new THREE.PerspectiveCamera(
@@ -45,9 +47,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-
 camera.position.set(0, 2, 5);
-camera.lookAt(0, 1, 0);
 
 /* ========================= RENDERER */
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -58,22 +58,18 @@ document.body.appendChild(renderer.domElement);
 
 /* ========================= CONTROLS */
 const controls = new OrbitControls(camera, renderer.domElement);
-
 controls.enableRotate = true;
 controls.enablePan = false;
 controls.enableZoom = true;
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
 
 /* ========================= LIGHT */
-const ambient = new THREE.AmbientLight(0xffffff, 1.2);
-scene.add(ambient);
+scene.add(new THREE.AmbientLight(0xffffff, 1.5));
 
 const dirLight = new THREE.DirectionalLight(0xffffff, 3);
 dirLight.position.set(5, 10, 5);
 scene.add(dirLight);
-
-const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.5);
-dirLight2.position.set(-5, 5, -5);
-scene.add(dirLight2);
 
 /* ========================= MOUSE */
 window.addEventListener("mousemove", (e) => {
@@ -84,58 +80,59 @@ window.addEventListener("mousemove", (e) => {
 /* ========================= LOAD MODEL */
 const loader = new GLTFLoader();
 
-loader.load("./model.glb?v=" + Date.now(), (gltf) => {
+loader.load(
+  "./model.glb?v=" + Date.now(),
 
-  const model = gltf.scene;
+  (gltf) => {
 
-  model.scale.setScalar(0.15);
+    const model = gltf.scene;
+    characterModel = model;
 
-  const pivot = new THREE.Group();
-  scene.add(pivot);
-  pivot.add(model);
+    scene.add(model);
 
-  characterModel = pivot;
+    model.scale.setScalar(0.15);
 
-  model.updateWorldMatrix(true, true);
+    /* 🔥 SAFE CENTERING */
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
 
-  const box = new THREE.Box3().setFromObject(model);
-  modelCenter = box.getCenter(new THREE.Vector3());
-  modelSize = box.getSize(new THREE.Vector3());
+    model.position.sub(center);
 
-  scene.add(new THREE.AxesHelper(5));
+    model.traverse((child) => {
+      if (child.isMesh) {
+        child.frustumCulled = false;
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
 
-  model.position.set(0, 0, 0);
+    /* CAMERA FIT */
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fitDistance = maxDim * 2.5;
 
-  model.traverse((child) => {
-    if (child.isMesh) {
-      child.frustumCulled = false;
-      child.castShadow = true;
-      child.receiveShadow = true;
-    }
-  });
+    const orbitCenter = new THREE.Vector3(0, size.y * 0.5, 0);
 
-  const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
-  const fitDistance = maxDim * 1.4;
+    camera.position.set(0, orbitCenter.y, fitDistance);
+    controls.target.copy(orbitCenter);
 
-  const orbitCenter = new THREE.Vector3(
-    0,
-    modelSize.y * 0.5,
-    0
-  );
+    controls.minDistance = fitDistance * 0.6;
+    controls.maxDistance = fitDistance * 3.0;
 
-  camera.position.set(0, orbitCenter.y, fitDistance);
-  camera.lookAt(orbitCenter);
+    controls.update();
 
-  controls.target.copy(orbitCenter);
-  controls.minDistance = fitDistance * 0.7;
-  controls.maxDistance = fitDistance * 3.0;
-  controls.update();
+    blinkSystem = new BlinkSystem(characterModel);
 
-  blinkSystem = new BlinkSystem(characterModel);
+    console.log("MODEL READY ✅");
+  },
 
-});
+  undefined,
+  (err) => {
+    console.error("MODEL LOAD ERROR ❌", err);
+  }
+);
 
-/* ========================= CHARACTER UPDATE */
+/* ========================= CHARACTER */
 function animateCharacter(delta) {
 
   if (!characterModel) return;
@@ -147,18 +144,9 @@ function animateCharacter(delta) {
   if (!isTalking) {
     characterModel.position.y = Math.sin(breathTime) * 0.015;
   }
-
-  if (head && !isTalking) {
-    target.set(mouse.x * 0.6, 1.2 + mouse.y * 0.3, 1.5);
-    smoothTarget.lerp(target, 0.1);
-
-    const temp = smoothTarget.clone();
-    head.parent.worldToLocal(temp);
-    head.lookAt(temp);
-  }
 }
 
-/* ========================= LOOP (FIX: ALWAYS RUNNING) */
+/* ========================= LOOP */
 function animate() {
 
   requestAnimationFrame(animate);
@@ -175,91 +163,13 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-/* 🔥 START LOOP IMMEDIATELY */
 animate();
 
 /* ========================= STATE */
 function setState(state) {
   behavior.setState(state);
-
   isTalking = state === "talking";
   isThinking = state === "thinking";
-}
-
-/* ========================= CHAT */
-let isSending = false;
-
-async function sendMessage() {
-  if (isSending) return;
-
-  const input = document.getElementById("userInput");
-  const text = input.value;
-
-  if (!text) return;
-
-  input.value = "";
-  isSending = true;
-
-  setState("thinking");
-
-  try {
-    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
-
-    const data = await res.json();
-
-    if (data.reply) {
-      speak(data.reply);
-    }
-
-  } catch (err) {
-    console.error(err);
-    setState("idle");
-    face?.setIdle?.();
-    isSending = false;
-  }
-}
-
-/* ========================= SPEAK */
-async function speak(text) {
-
-  try {
-    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
-    });
-
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-
-    if (currentAudio) currentAudio.pause();
-
-    const audio = new Audio(url);
-    currentAudio = audio;
-
-    audio.onplay = () => {
-      setState("talking");
-      face?.setTalking?.(1);
-    };
-
-    audio.onended = () => {
-      setState("idle");
-      face?.setIdle?.();
-      isSending = false;
-    };
-
-    audio.play();
-
-  } catch (err) {
-    console.error(err);
-    setState("idle");
-    face?.setIdle?.();
-    isSending = false;
-  }
 }
 
 /* ========================= UI */
