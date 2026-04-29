@@ -96,7 +96,6 @@ loader.load(
 
     model.scale.setScalar(0.15);
 
-    /* 🔥 SAFE CENTERING */
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
@@ -106,11 +105,9 @@ loader.load(
     console.log("MODEL SIZE:", size);
     console.log("MODEL CENTER:", center);
 
-    /* 🔥 DEBUG VISUAL HELP */
     const helper = new THREE.BoxHelper(model, 0xff0000);
     scene.add(helper);
 
-    /* 🔥 MATERIAL + VISIBILITY FIX */
     model.traverse((child) => {
       if (child.isMesh) {
 
@@ -141,7 +138,6 @@ loader.load(
     console.error("❌ MODEL LOAD ERROR:", error);
   }
 );
-
     /* CAMERA FIT */
     const maxDim = Math.max(size.x, size.y, size.z);
     const fitDistance = maxDim * 2.5;
