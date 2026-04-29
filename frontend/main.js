@@ -70,77 +70,88 @@ window.addEventListener("mousemove", (e) => {
 });
 
 /* ========================= LOAD MODEL */
+```javascript
 const loader = new GLTFLoader();
 
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
 
-  // 🔥 SCALE FIRST
-  model.scale.setScalar(0.25);
+  // =========================
+  // MODEL SCALE
+  // =========================
+  model.scale.setScalar(0.15);
+
+  // =========================
+  // PIVOT GROUP
+  // =========================
+  const pivot = new THREE.Group();
+  scene.add(pivot);
+  pivot.add(model);
+
+  characterModel = pivot;
+
+  // scale sonrası bbox hesapla
   model.updateWorldMatrix(true, true);
 
-  // 🔥 BBOX FIRST (IMPORTANT FIX)
- const pivot = new THREE.Group();
-scene.add(pivot);
-characterModel = pivot;
+  const box = new THREE.Box3().setFromObject(model);
+  modelCenter = box.getCenter(new THREE.Vector3());
+  modelSize = box.getSize(new THREE.Vector3());
 
-const box = new THREE.Box3().setFromObject(model);
-modelCenter = box.getCenter(new THREE.Vector3());
-modelSize = box.getSize(new THREE.Vector3());
+  // modeli merkeze al
+  model.position.sub(modelCenter);
 
-model.position.sub(modelCenter);
+  // ayakları zemine oturt
+  model.position.y += modelSize.y * 0.5;
 
-// 🔥 BURAYA EKLE
-model.position.y += modelSize.y * 0.5;
-
-pivot.add(model);
-
+  // =========================
+  // CAMERA
+  // =========================
   const maxDim = Math.max(
-  modelSize.x,
-  modelSize.y,
-  modelSize.z
-);
+    modelSize.x,
+    modelSize.y,
+    modelSize.z
+  );
 
-// model daha büyük ve stabil görünmesi için
-const fitDistance = maxDim * 1.2;
+  const fitDistance = maxDim * 1.4;
 
-// gerçek merkez
-const orbitCenter = new THREE.Vector3(
-  0,
-  modelSize.y * 0.5,
-  0
-);
+  const orbitCenter = new THREE.Vector3(
+    0,
+    modelSize.y * 0.5,
+    0
+  );
 
-// kamera sabit ve düzgün
-camera.position.set(
-  0,
-  orbitCenter.y,
-  fitDistance
-);
+  camera.position.set(
+    0,
+    orbitCenter.y,
+    fitDistance
+  );
 
-camera.lookAt(orbitCenter);
+  camera.lookAt(orbitCenter);
 
-// controls hedefi
-controls.target.copy(orbitCenter);
+  // =========================
+  // CONTROLS
+  // =========================
+  controls.enableRotate = true;
+  controls.enablePan = false;
+  controls.enableZoom = true;
 
-// tam serbest dönüş
-controls.enableRotate = true;
-controls.enablePan = false;
-controls.enableZoom = true;
+  controls.target.copy(orbitCenter);
 
-controls.minDistance = fitDistance * 0.7;
-controls.maxDistance = fitDistance * 2.5;
+  controls.minDistance = fitDistance * 0.7;
+  controls.maxDistance = fitDistance * 3.0;
 
-// yukarı aşağı serbest
-controls.minPolarAngle = 0;
-controls.maxPolarAngle = Math.PI;
+  controls.minPolarAngle = 0;
+  controls.maxPolarAngle = Math.PI;
 
-controls.update();
+  controls.update();
 
   blinkSystem = new BlinkSystem(characterModel);
 
   animate();
+});
+```
+
 });
 
 /* ========================= CHARACTER UPDATE */
