@@ -126,15 +126,14 @@ loader.load(
     const maxDim = Math.max(size.x, size.y, size.z);
     const fitDistance = maxDim * 2.5;
 
-    const orbitCenter = new THREE.Vector3(0, size.y * 0.5, 0);
+    const orbitCenter = new THREE.Vector3(0, 0, 0);
 
-    camera.position.set(0, orbitCenter.y, fitDistance);
-    controls.target.copy(orbitCenter);
+camera.position.set(0, 2, fitDistance);
+controls.target.set(0, 1, 0);
 
-    controls.minDistance = fitDistance * 0.6;
-    controls.maxDistance = fitDistance * 3.0;
-
-    controls.update();
+   controls.minDistance = 1;
+controls.maxDistance = fitDistance * 3;
+controls.update();
 
     blinkSystem = new BlinkSystem(characterModel);
 
