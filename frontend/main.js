@@ -36,7 +36,6 @@ const behavior = new AvatarBehaviorEngine();
 /* ========================= SCENE */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
-scene.add(new THREE.AxesHelper(5));
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -75,10 +74,12 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   model.updateWorldMatrix(true, true);
 
   // BBOX
-  const box = new THREE.Box3().setFromObject(model);
+ const box = new THREE.Box3().setFromObject(model);
 
-  modelCenter = box.getCenter(new THREE.Vector3());
-  modelSize = box.getSize(new THREE.Vector3());
+modelCenter = box.getCenter(new THREE.Vector3());
+modelSize = box.getSize(new THREE.Vector3());
+
+model.position.sub(modelCenter);
 
   const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
   const fitDistance = maxDim * 3;
@@ -87,7 +88,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   model.position.x -= modelCenter.x;
   model.position.y -= modelCenter.y;
   model.position.z -= modelCenter.z;
-  model.position.y += modelSize.y * 0.5;
+  
 
   const orbitCenter = new THREE.Vector3(0, modelSize.y * 0.5, 0);
 
