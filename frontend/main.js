@@ -45,7 +45,8 @@ document.body.appendChild(renderer.domElement);
 
 /* ========================= CONTROLS */
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
+
+controls.enableRotate = false;   // 🚫 kamera dönmeyecek
 controls.enablePan = false;
 controls.enableZoom = true;
 controls.screenSpacePanning = false;
@@ -85,19 +86,18 @@ model.position.sub(modelCenter);
   const fitDistance = maxDim * 3;
 
   // CENTER FIX
-  model.position.x -= modelCenter.x;
-  model.position.y -= modelCenter.y;
-  model.position.z -= modelCenter.z;
+
   
 
   const orbitCenter = new THREE.Vector3(0, modelSize.y * 0.5, 0);
 
   // CAMERA
-  camera.position.set(0, orbitCenter.y + 0.4, fitDistance);
-  camera.lookAt(orbitCenter);
+  const orbitCenter = new THREE.Vector3(0, modelSize.y * 0.5, 0);
 
-  // CONTROLS
-  controls.target.copy(orbitCenter);
+camera.position.set(0, orbitCenter.y + 0.4, fitDistance);
+
+controls.target.copy(orbitCenter);
+controls.update();
 
   controls.minDistance = fitDistance * 0.6;
   controls.maxDistance = fitDistance * 1.8;
@@ -123,17 +123,17 @@ function animateCharacter(delta) {
 
   breathTime += delta * 2;
 
-  // idle movement
+  // idle bob (sadece Y POSITION)
   if (!isTalking) {
     characterModel.position.y = Math.sin(breathTime) * 0.015;
   }
 
-  // MODEL ROTATE (FIXED)
-  const targetRotY = mouse.x * 0.8;
+  // ✅ TEK ROTATION SYSTEM
+  const targetY = mouse.x * 1.2;
 
   characterModel.rotation.y = THREE.MathUtils.lerp(
     characterModel.rotation.y,
-    targetRotY,
+    targetY,
     0.08
   );
 
@@ -147,7 +147,6 @@ function animateCharacter(delta) {
     head.lookAt(temp);
   }
 }
-
 /* ========================= LOOP */
 function animate() {
   requestAnimationFrame(animate);
