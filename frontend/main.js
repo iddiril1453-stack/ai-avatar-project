@@ -52,7 +52,7 @@ document.body.appendChild(renderer.domElement);
 /* ========================= CONTROLS */
 const controls = new OrbitControls(camera, renderer.domElement);
 
-controls.enableRotate = false;
+controls.enableRotate = true;
 controls.enablePan = false;
 controls.enableZoom = true;
 
@@ -92,23 +92,47 @@ modelSize = box.getSize(new THREE.Vector3());
 model.position.sub(modelCenter);
 pivot.add(model);
 
-  const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
-  const fitDistance = maxDim * 2.8;
+  const maxDim = Math.max(
+  modelSize.x,
+  modelSize.y,
+  modelSize.z
+);
 
-  // orbit center
-  const orbitCenter = new THREE.Vector3(
-    0,
-    modelSize.y * 0.5,
-    0
-  );
+// model daha büyük ve stabil görünmesi için
+const fitDistance = maxDim * 1.8;
 
- const fitDistance = Math.max(modelSize.x, modelSize.y, modelSize.z) * 1.2;
+// gerçek merkez
+const orbitCenter = new THREE.Vector3(
+  0,
+  modelSize.y * 0.5,
+  0
+);
 
-camera.position.set(0, modelSize.y * 0.5, fitDistance);
-controls.target.set(0, modelSize.y * 0.5, 0);
+// kamera sabit ve düzgün
+camera.position.set(
+  0,
+  orbitCenter.y,
+  fitDistance
+);
 
-  controls.target.copy(orbitCenter);
-  controls.update();
+camera.lookAt(orbitCenter);
+
+// controls hedefi
+controls.target.copy(orbitCenter);
+
+// tam serbest dönüş
+controls.enableRotate = true;
+controls.enablePan = false;
+controls.enableZoom = true;
+
+controls.minDistance = fitDistance * 0.7;
+controls.maxDistance = fitDistance * 2.5;
+
+// yukarı aşağı serbest
+controls.minPolarAngle = 0;
+controls.maxPolarAngle = Math.PI;
+
+controls.update();
 
   blinkSystem = new BlinkSystem(characterModel);
 
