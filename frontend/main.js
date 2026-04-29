@@ -75,7 +75,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   model.updateWorldMatrix(true, true);
 
   // BBOX
- const box = new THREE.Box3().setFromObject(model);
+ 
 
 modelCenter = box.getCenter(new THREE.Vector3());
 modelSize = box.getSize(new THREE.Vector3());
