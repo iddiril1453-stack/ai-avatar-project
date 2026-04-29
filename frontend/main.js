@@ -124,7 +124,7 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   // =========================
   // BBOX
   // =========================
- const box = new THREE.Box3().setFromObject(model);
+const box = new THREE.Box3().setFromObject(model);
 
 modelCenter = box.getCenter(new THREE.Vector3());
 modelSize = box.getSize(new THREE.Vector3());
@@ -140,21 +140,21 @@ const maxDim = Math.max(
 
 const centerWorld = new THREE.Vector3(
   0,
-  modelSize.y * 0.5,
+  1.2,
   0
 );
 
-const dist = maxDim * 2.5;
+const dist = 4.5;
 
 const orbitCenter = new THREE.Vector3(
   0,
-  modelSize.y * 0.5,
+  1.2,
   0
 );
 
 camera.position.set(
   0,
-  orbitCenter.y + dist * 0.2,
+  1.6,
   dist
 );
 
