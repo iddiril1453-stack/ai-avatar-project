@@ -152,7 +152,6 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 });
 ```
 
-});
 
 /* ========================= CHARACTER UPDATE */
 function animateCharacter(delta) {
