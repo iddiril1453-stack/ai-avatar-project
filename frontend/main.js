@@ -21,6 +21,10 @@ let isThinking = false;
 let breathTime = 0;
 let currentAudio = null;
 
+let modelSize = new THREE.Vector3();
+
+let modelCenter = new THREE.Vector3();
+
 const mouse = { x: 0, y: 0 };
 const target = new THREE.Vector3();
 const smoothTarget = new THREE.Vector3();
@@ -58,10 +62,10 @@ controls.maxPolarAngle = Math.PI * 0.55;
 controls.minPolarAngle = Math.PI * 0.35;
 
 
-const dist = Math.max(size.x, size.y, size.z) * 2.5;
+const dist = Math.max(modelSize.x, modelSize.y, modelSize.z) * 2.5;
 
 // 🔥 SINGLE ORBIT CENTER FIX
-const orbitCenter = new THREE.Vector3(0, size.y * 0.5, 0);
+const orbitCenter = new THREE.Vector3(0, modelSize.y * 0.5, 0);
 
 camera.position.set(0, orbitCenter.y + dist * 0.2, dist);
 
@@ -120,60 +124,43 @@ loader.load("./model.glb?v=" + Date.now(), (gltf) => {
   // =========================
   // BBOX
   // =========================
-  const box = new THREE.Box3().setFromObject(model);
-  const center = box.getCenter(new THREE.Vector3());
-  const size = box.getSize(new THREE.Vector3());
+ const box = new THREE.Box3().setFromObject(model);
 
-  model.position.sub(center);
-  model.position.y = -size.y * 0.5;
+modelCenter = box.getCenter(new THREE.Vector3());
+modelSize = box.getSize(new THREE.Vector3());
 
-  model.rotation.set(0, 0, 0);
+model.position.sub(modelCenter);
+model.position.y = -modelSize.y * 0.5;
 
-  characterModel = model;
+const maxDim = Math.max(
+  modelSize.x,
+  modelSize.y,
+  modelSize.z
+);
 
-  // =========================
-  // SYSTEM INIT
-  // =========================
-  brain = new AnimationBrain(characterModel);
-  face = new FaceController(characterModel);
+const centerWorld = new THREE.Vector3(
+  0,
+  modelSize.y * 0.5,
+  0
+);
 
-  if (gltf.animations?.length) {
-    mixer = new THREE.AnimationMixer(model);
+const dist = maxDim * 2.5;
 
-    gltf.animations.forEach((clip) => {
-      const action = mixer.clipAction(clip);
-      action.play();
-      action.setEffectiveWeight(0.3);
-    });
-  }
+const orbitCenter = new THREE.Vector3(
+  0,
+  modelSize.y * 0.5,
+  0
+);
 
-  model.traverse((child) => {
-    const n = child.name?.toLowerCase() || "";
-    if (n.includes("head") || n.includes("neck") || n.includes("face")) {
-      head = child;
-    }
-  });
+camera.position.set(
+  0,
+  orbitCenter.y + dist * 0.2,
+  dist
+);
 
-  // =========================
-  // CAMERA FIX (TEK MERKEZ)
-  // =========================
-
-  const maxDim = Math.max(size.x, size.y, size.z);
-  const centerWorld = new THREE.Vector3(0, size.y * 0.5, 0);
-
-  const dist = maxDim * 2.5;
-
-  camera.position.set(
-    0,
-    centerWorld.y + maxDim * 0.25,
-    dist
-  );
-
-  controls.target.copy(centerWorld);
-
-  camera.lookAt(centerWorld);
-
-  controls.update();
+controls.target.copy(orbitCenter);
+camera.lookAt(orbitCenter);
+controls.update();
 
   // =========================
   // ORBIT LOCK (STABLE)
