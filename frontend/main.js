@@ -72,9 +72,13 @@ const loader = new GLTFLoader();
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
-  characterModel = model;
+  const pivot = new THREE.Group();
+scene.add(pivot);
+pivot.add(model);
 
-  scene.add(model);
+characterModel = pivot;
+
+model.position.set(0, -modelSize.y * 0.5, 0);
 
   // ========================= SCALE
   model.scale.setScalar(0.01);
@@ -136,11 +140,13 @@ function animateCharacter(delta) {
   // ========================= 🔥 CLEAN ROTATION (FIXED)
   const targetY = mouse.x * Math.PI * 0.5;
 
-  characterModel.rotation.y = THREE.MathUtils.lerp(
-    characterModel.rotation.y,
-    targetY,
-    0.08
-  );
+  const targetY = mouse.x * Math.PI * 0.4;
+
+characterModel.rotation.y = THREE.MathUtils.lerp(
+  characterModel.rotation.y,
+  targetY,
+  0.06
+);
 
   // ========================= HEAD LOOK
   if (head && !isTalking) {
