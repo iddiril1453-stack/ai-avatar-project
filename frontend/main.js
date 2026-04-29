@@ -52,7 +52,7 @@ document.body.appendChild(renderer.domElement);
 /* ========================= CONTROLS */
 const controls = new OrbitControls(camera, renderer.domElement);
 
-controls.enableRotate = false;   // ❗ model rotate edeceğiz
+controls.enableRotate = false;
 controls.enablePan = false;
 controls.enableZoom = true;
 controls.screenSpacePanning = false;
@@ -72,50 +72,47 @@ const loader = new GLTFLoader();
 loader.load("./model.glb?v=" + Date.now(), (gltf) => {
 
   const model = gltf.scene;
-  const pivot = new THREE.Group();
-scene.add(pivot);
-pivot.add(model);
 
-characterModel = pivot;
-
-model.position.set(0, -modelSize.y * 0.5, 0);
-
-  // ========================= SCALE
+  // 🔥 SCALE FIRST
   model.scale.setScalar(0.01);
   model.updateWorldMatrix(true, true);
 
-  // ========================= BBOX
+  // 🔥 BBOX FIRST (IMPORTANT FIX)
   const box = new THREE.Box3().setFromObject(model);
 
   modelCenter = box.getCenter(new THREE.Vector3());
   modelSize = box.getSize(new THREE.Vector3());
 
-  model.position.sub(modelCenter);
-
   const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
   const fitDistance = maxDim * 2.8;
 
-  // ========================= ORBIT CENTER
+  // 🔥 PIVOT SYSTEM CORRECT
+  const pivot = new THREE.Group();
+  scene.add(pivot);
+  pivot.add(model);
+
+  characterModel = pivot;
+
+  // model center fix
+  model.position.sub(modelCenter);
+
+  // orbit center
   const orbitCenter = new THREE.Vector3(
     0,
     modelSize.y * 0.5,
     0
   );
 
-  // ========================= CAMERA FIX
+  // camera
   camera.position.set(
     0,
     orbitCenter.y + 0.4,
     fitDistance
   );
 
-  // ❗ camera.lookAt KALDIRILDI (drift yapıyordu)
-
-  // ========================= CONTROLS FIX
   controls.target.copy(orbitCenter);
   controls.update();
 
-  // ========================= SYSTEMS
   blinkSystem = new BlinkSystem(characterModel);
 
   animate();
@@ -132,23 +129,20 @@ function animateCharacter(delta) {
 
   breathTime += delta * 2;
 
-  // idle motion
   if (!isTalking) {
     characterModel.position.y = Math.sin(breathTime) * 0.015;
   }
 
-  // ========================= 🔥 CLEAN ROTATION (FIXED)
-  const targetY = mouse.x * Math.PI * 0.5;
-
+  // 🔥 FIXED ROTATION (ONLY ONE targetY)
   const targetY = mouse.x * Math.PI * 0.4;
 
-characterModel.rotation.y = THREE.MathUtils.lerp(
-  characterModel.rotation.y,
-  targetY,
-  0.06
-);
+  characterModel.rotation.y = THREE.MathUtils.lerp(
+    characterModel.rotation.y,
+    targetY,
+    0.06
+  );
 
-  // ========================= HEAD LOOK
+  // HEAD LOOK
   if (head && !isTalking) {
     target.set(mouse.x * 0.6, 1.2 + mouse.y * 0.3, 1.5);
     smoothTarget.lerp(target, 0.1);
@@ -175,7 +169,6 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
-
 /* ========================= STATE */
 function setState(state) {
   behavior.setState(state);
