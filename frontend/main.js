@@ -189,23 +189,19 @@ function animate() {
 
   const delta = clock.getDelta();
 
-  if (mixer) {
-    mixer.update(delta);
-  }
+  if (mixer) mixer.update(delta);
 
   if (face) face.update(delta);
   if (blinkSystem) blinkSystem.update(delta, isTalking);
   if (brain) brain.update(delta, isTalking, isThinking);
 
-  /* =========================
-     HEAD TALKING MOTION
-  ========================= */
+  /* HEAD MOTION */
   if (head && isTalking) {
 
-    const t = performance.now() * 0.002;
+    const t = performance.now() * 0.003;
 
-    head.rotation.y += (Math.sin(t) * 0.2 - head.rotation.y) * 0.1;
-    head.rotation.x += (Math.sin(t * 1.5) * 0.1 - head.rotation.x) * 0.1;
+    head.rotation.y += (Math.sin(t) * 0.5 - head.rotation.y) * 0.2;
+    head.rotation.x += (Math.sin(t * 1.5) * 0.25 - head.rotation.x) * 0.2;
 
   } else if (head) {
 
@@ -213,29 +209,16 @@ function animate() {
     head.rotation.x *= 0.9;
   }
 
-  /* =========================
-     BREATH (IDLE ONLY)
-  ========================= */
-  if (characterModel) {
+  /* BREATH */
+  if (characterModel && !isTalking) {
     breathTime += delta * 2;
-
-    if (!isTalking) {
-      characterModel.position.y = Math.sin(breathTime) * 0.015;
-    }
-  }
-
-  /* =========================
-     IDLE CONTROL
-  ========================= */
-  if (mixer && isTalking) {
-    mixer._idleAction.paused = true;
-  } else if (mixer && mixer._idleAction) {
-    mixer._idleAction.paused = false;
+    characterModel.position.y = Math.sin(breathTime) * 0.015;
   }
 
   controls.update();
   renderer.render(scene, camera);
 }
+
 animate();
 /* ========================= STATE */
 function setState(state) {
