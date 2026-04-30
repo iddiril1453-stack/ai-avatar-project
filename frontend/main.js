@@ -103,7 +103,7 @@ model.traverse((c) => {
   console.log("NODE:", c.type, c.name);
 });
 
-    model.scale.setScalar(0.15);
+    model.scale.setScalar(1);
 
     /* SAFE CENTERING */
     const box = new THREE.Box3().setFromObject(model);
@@ -134,17 +134,23 @@ model.traverse((c) => {
     });
 
     /* CAMERA FIT */
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const orbitCenter = new THREE.Vector3(0, 0, 0);
+  const maxDim = Math.max(size.x, size.y, size.z);
 
-const fitDistance = maxDim * 1.2;
+// 🔥 DAHA UZAK KAMERA
+const fitDistance = maxDim * 3.5;
 
-camera.position.set(0, 1.4, fitDistance);
-controls.target.set(0, 1.2, 0);
+// 🔥 MERKEZ
+const centerY = size.y * 0.5;
 
+// 🔥 KAMERA DIŞARI
+camera.position.set(0, centerY, fitDistance);
 
-   controls.minDistance = 1;
-controls.maxDistance = fitDistance * 3;
+// 🔥 TAM ORTAYA BAK
+controls.target.set(0, centerY, 0);
+
+controls.minDistance = fitDistance * 0.5;
+controls.maxDistance = fitDistance * 5;
+
 controls.update();
 
     blinkSystem = new BlinkSystem(characterModel);
