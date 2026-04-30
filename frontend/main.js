@@ -103,6 +103,18 @@ loader.load(
     scene.add(model);
 
     /* =========================
+   FIND HEAD BONE
+========================= */
+model.traverse((obj) => {
+  if (obj.isBone) {
+    if (obj.name.toLowerCase().includes("head")) {
+      head = obj;
+      console.log("HEAD FOUND ✅", obj.name);
+    }
+  }
+});
+
+    /* =========================
    ANIMATION MIXER (IDLE FIX)
 ========================= */
 mixer = new THREE.AnimationMixer(model);
@@ -177,32 +189,34 @@ function animate() {
 
   const delta = clock.getDelta();
 
-if (mixer) {
-  mixer.update(delta);
-}
+  if (mixer) {
+    mixer.update(delta);
+  }
 
   if (face) face.update(delta);
-if (blinkSystem) blinkSystem.update(delta, isTalking);
-if (brain) brain.update(delta, isTalking, isThinking);
+  if (blinkSystem) blinkSystem.update(delta, isTalking);
+  if (brain) brain.update(delta, isTalking, isThinking);
 
-/* =========================
-   FAKE TALKING MOTION
-========================= */
-if (characterModel && isTalking) {
+  /* =========================
+     HEAD TALKING MOTION
+  ========================= */
+  if (head && isTalking) {
 
-  const t = performance.now() * 0.005;
+    const t = performance.now() * 0.002;
 
-  characterModel.rotation.y = Math.sin(t) * 0.1;   // sağ-sol
-  characterModel.rotation.x = Math.sin(t * 2) * 0.05; // kafa hafif
+    head.rotation.y += (Math.sin(t) * 0.2 - head.rotation.y) * 0.1;
+    head.rotation.x += (Math.sin(t * 1.5) * 0.1 - head.rotation.x) * 0.1;
 
-} else if (characterModel) {
+  } else if (head) {
 
-  characterModel.rotation.y *= 0.9;
-  characterModel.rotation.x *= 0.9;
-}
+    head.rotation.y *= 0.9;
+    head.rotation.x *= 0.9;
+  }
 
-  if (characterModel && blinkSystem) {
-    blinkSystem.update(delta, isTalking);
+  /* =========================
+     BREATH (IDLE ONLY)
+  ========================= */
+  if (characterModel) {
     breathTime += delta * 2;
 
     if (!isTalking) {
@@ -210,17 +224,19 @@ if (characterModel && isTalking) {
     }
   }
 
-if (mixer && isTalking) {
-  mixer._idleAction.paused = true;   // idle durur
-} else if (mixer && mixer._idleAction) {
-  mixer._idleAction.paused = false;  // idle geri gelir
-}
+  /* =========================
+     IDLE CONTROL
+  ========================= */
+  if (mixer && isTalking) {
+    mixer._idleAction.paused = true;
+  } else if (mixer && mixer._idleAction) {
+    mixer._idleAction.paused = false;
+  }
 
   controls.update();
   renderer.render(scene, camera);
 }
 animate();
-
 /* ========================= STATE */
 function setState(state) {
   behavior.setState(state);
