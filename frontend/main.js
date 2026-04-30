@@ -329,22 +329,37 @@ async function startMic() {
 
     mediaRecorder.onstop = async () => {
 
-  const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
 
-  const formData = new FormData();
-  formData.append("file", audioBlob, "audio.webm");
+      const formData = new FormData();
+      formData.append("file", audioBlob, "audio.webm");
 
-  const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
-    method: "POST",
-    body: formData
-  });
+      try {
 
-  const data = await res.json();
+        const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
+          method: "POST",
+          body: formData
+        });
 
-  if (data.text) {
-    sendMessageFromVoice(data.text);
-  }
-};
+        const text = await res.text();
+        console.log("WHISPER RAW RESPONSE:", text);
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error("WHISPER JSON ERROR ❌", text);
+          return;
+        }
+
+        if (data.text) {
+          sendMessageFromVoice(data.text);
+        }
+
+      } catch (err) {
+        console.error("WHISPER FETCH ERROR ❌", err);
+      }
+    };
 
     mediaRecorder.start();
     isRecording = true;
