@@ -255,36 +255,77 @@ window.addEventListener("DOMContentLoaded", () => {
     if (e.key === "s") stopMic();
   });
 
+  const micBtn = document.createElement("button");
+  micBtn.innerText = "🎤 Hold to Talk";
+
+  micBtn.style.position = "absolute";
+  micBtn.style.bottom = "20px";
+  micBtn.style.right = "20px";
+  micBtn.style.padding = "12px 16px";
+  micBtn.style.borderRadius = "10px";
+  micBtn.style.border = "none";
+  micBtn.style.background = "#ff4444";
+  micBtn.style.color = "#fff";
+  micBtn.style.zIndex = 9999;
+  micBtn.style.cursor = "pointer";
+
+  document.body.appendChild(micBtn);
+
+  const start = (e) => {
+    e.preventDefault();
+    startMic();
+  };
+
+  const stop = (e) => {
+    e.preventDefault();
+    stopMic();
+  };
+
+  micBtn.addEventListener("mousedown", start);
+  micBtn.addEventListener("mouseup", stop);
+  micBtn.addEventListener("mouseleave", stop);
+
+  micBtn.addEventListener("touchstart", start);
+  micBtn.addEventListener("touchend", stop);
+
 });
+
 async function startMic() {
 
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  if (isRecording) return;
 
-  mediaRecorder = new MediaRecorder(stream);
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-  audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
 
-  mediaRecorder.ondataavailable = (e) => {
-    audioChunks.push(e.data);
-  };
+    mediaRecorder.ondataavailable = (e) => {
+      audioChunks.push(e.data);
+    };
 
-  mediaRecorder.onstop = async () => {
+    mediaRecorder.onstop = async () => {
 
-    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
 
-    console.log("AUDIO CAPTURED 🎤", audioBlob);
+      console.log("AUDIO CAPTURED 🎤", audioBlob);
 
-    // 👉 şimdilik sadece log (sonraki adım backend)
-  };
+      // 👉 NEXT STEP: backend upload
+    };
 
-  mediaRecorder.start();
-  isRecording = true;
+    mediaRecorder.start();
+    isRecording = true;
 
-  console.log("MIC STARTED 🎤");
+    console.log("MIC STARTED 🎤");
+
+  } catch (err) {
+    console.error("MIC ERROR ❌", err);
+  }
 }
+
 function stopMic() {
 
-  if (!mediaRecorder) return;
+  if (!mediaRecorder || !isRecording) return;
 
   mediaRecorder.stop();
   isRecording = false;
