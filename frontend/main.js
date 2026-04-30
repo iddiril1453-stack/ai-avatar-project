@@ -87,16 +87,22 @@ loader.load(
     console.log("MODEL LOADED ✅");
 
     const model = gltf.scene;
+
+    // 🔥 BUNU EKLE (ÇOK ÖNEMLİ)
+    characterModel = model;
+
     scene.add(model);
 
-    // 🔥 SADECE BU
-    model.position.set(0, 0, 0);
-    model.scale.set(1, 1, 1);
+    // 🔥 SCALE (DEV OLMASIN)
+    model.scale.set(0.01, 0.01, 0.01);
 
-    // 🔥 KAMERA BASİT
+    // 🔥 ORTAYA AL
+    model.position.set(0, 0, 0);
+
+    // 🔥 KAMERA
     camera.position.set(0, 1.5, 3);
 
-    // 🔥 ORTAYA BAK
+    // 🔥 ORBİT TARGET
     controls.target.set(0, 1, 0);
     controls.update();
 
