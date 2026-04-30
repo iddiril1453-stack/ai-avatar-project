@@ -116,10 +116,12 @@ if (gltf.animations && gltf.animations.length > 0) {
 
   const action = mixer.clipAction(idleClip);
 
-  action.reset();
-  action.play();
-  action.setLoop(THREE.LoopRepeat);
-  action.enabled = true;
+action.reset();
+action.setLoop(THREE.LoopRepeat);
+action.enabled = true;
+action.play();
+
+mixer._idleAction = action; // 🔥 EKLE
 
   console.log("IDLE SELECTED:", idleClip.name);
 
@@ -183,6 +185,22 @@ if (mixer) {
 if (blinkSystem) blinkSystem.update(delta, isTalking);
 if (brain) brain.update(delta, isTalking, isThinking);
 
+/* =========================
+   FAKE TALKING MOTION
+========================= */
+if (characterModel && isTalking) {
+
+  const t = performance.now() * 0.005;
+
+  characterModel.rotation.y = Math.sin(t) * 0.1;   // sağ-sol
+  characterModel.rotation.x = Math.sin(t * 2) * 0.05; // kafa hafif
+
+} else if (characterModel) {
+
+  characterModel.rotation.y *= 0.9;
+  characterModel.rotation.x *= 0.9;
+}
+
   if (characterModel && blinkSystem) {
     blinkSystem.update(delta, isTalking);
     breathTime += delta * 2;
@@ -191,6 +209,12 @@ if (brain) brain.update(delta, isTalking, isThinking);
       characterModel.position.y = Math.sin(breathTime) * 0.015;
     }
   }
+
+if (mixer && isTalking) {
+  mixer._idleAction.paused = true;   // idle durur
+} else if (mixer && mixer._idleAction) {
+  mixer._idleAction.paused = false;  // idle geri gelir
+}
 
   controls.update();
   renderer.render(scene, camera);
@@ -237,58 +261,31 @@ async function sendMessage() {
 
 /* ========================= SPEAK (SAFE PLACEHOLDER) */
 async function speak(text) {
+
   console.log("SPEAK:", text);
+
   setState("talking");
+
+  // 🔥 önce varsa eski sesi durdur
+  speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  utterance.lang = "tr-TR";
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  utterance.onstart = () => {
+    isTalking = true;
+  };
+
+  utterance.onend = () => {
+    isTalking = false;
+    setState("idle");
+  };
+
+  speechSynthesis.speak(utterance);
 }
-
-/* ========================= UI */
-window.addEventListener("DOMContentLoaded", () => {
-
-  document.getElementById("sendBtn")?.addEventListener("click", sendMessage);
-
-  document.getElementById("userInput")?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendMessage();
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "r") startMic();
-    if (e.key === "s") stopMic();
-  });
-
-  const micBtn = document.createElement("button");
-  micBtn.innerText = "🎤 Hold to Talk";
-
-  micBtn.style.position = "absolute";
-  micBtn.style.bottom = "20px";
-  micBtn.style.right = "20px";
-  micBtn.style.padding = "12px 16px";
-  micBtn.style.borderRadius = "10px";
-  micBtn.style.border = "none";
-  micBtn.style.background = "#ff4444";
-  micBtn.style.color = "#fff";
-  micBtn.style.zIndex = 9999;
-  micBtn.style.cursor = "pointer";
-
-  document.body.appendChild(micBtn);
-
-  const start = (e) => {
-    e.preventDefault();
-    startMic();
-  };
-
-  const stop = (e) => {
-    e.preventDefault();
-    stopMic();
-  };
-
-  micBtn.addEventListener("mousedown", start);
-  micBtn.addEventListener("mouseup", stop);
-  micBtn.addEventListener("mouseleave", stop);
-
-  micBtn.addEventListener("touchstart", start);
-  micBtn.addEventListener("touchend", stop);
-
-});
 
 async function startMic() {
 
