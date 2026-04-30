@@ -92,6 +92,24 @@ loader.load(
 
     scene.add(model);
 
+    scene.add(model);
+model.position.set(0, 0, 0);
+model.scale.setScalar(1);
+console.log("CHILD COUNT:", model.children.length);
+console.log("MODEL:", model);
+
+
+model.traverse((c) => {
+  console.log("NODE:", c.type, c.name);
+});
+
+model.traverse((c) => {
+  if (c.isMesh) {
+    c.material = new THREE.MeshNormalMaterial();
+  }
+});
+
+
     model.scale.setScalar(0.15);
 
     /* SAFE CENTERING */
