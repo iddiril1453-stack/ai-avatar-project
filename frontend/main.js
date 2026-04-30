@@ -87,29 +87,24 @@ loader.load(
     console.log("MODEL LOADED ✅");
 
     const model = gltf.scene;
-characterModel = model;
 
-scene.add(model);
+    // 🔥 BUNU EKLE (ÇOK ÖNEMLİ)
+    characterModel = model;
 
-// 🔥 DOĞRU SCALE
-model.scale.set(1, 1, 1);
+    scene.add(model);
 
-// 🔥 MODEL BOYUTUNU ÖLÇ
-const box = new THREE.Box3().setFromObject(model);
-const size = box.getSize(new THREE.Vector3());
-const center = box.getCenter(new THREE.Vector3());
+    // 🔥 SCALE (DEV OLMASIN)
+    model.scale.set(1, 1, 1);
 
-// 🔥 ORTALA
-model.position.sub(center);
+    // 🔥 ORTAYA AL
+    model.position.set(0, 0, 0);
 
-// 🔥 KAMERA MESAFESİ (ASIL OLAY BU)
-const maxDim = Math.max(size.x, size.y, size.z);
-const distance = maxDim * 1.5;
+    // 🔥 KAMERA
+    camera.position.set(0, 1.5, 3);
 
-camera.position.set(0, maxDim * 0.5, distance);
-controls.target.set(0, maxDim * 0.5, 0);
-
-controls.update();
+    // 🔥 ORBİT TARGET
+    controls.target.set(0, 1, 0);
+    controls.update();
 
     console.log("MODEL READY ✅");
   },
