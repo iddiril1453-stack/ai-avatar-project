@@ -58,9 +58,9 @@ document.body.appendChild(renderer.domElement);
 
 /* ========================= CONTROLS */
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableRotate = true;
+/*controls.enableRotate = true;
 controls.enablePan = false;
-controls.enableZoom = true;
+controls.enableZoom = true;*/
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 
@@ -103,13 +103,6 @@ model.traverse((c) => {
   console.log("NODE:", c.type, c.name);
 });
 
-model.traverse((c) => {
-  if (c.isMesh) {
-    c.material = new THREE.MeshNormalMaterial();
-  }
-});
-
-
     model.scale.setScalar(0.15);
 
     /* SAFE CENTERING */
@@ -142,12 +135,13 @@ model.traverse((c) => {
 
     /* CAMERA FIT */
     const maxDim = Math.max(size.x, size.y, size.z);
-    const fitDistance = maxDim * 2.5;
-
     const orbitCenter = new THREE.Vector3(0, 0, 0);
 
-camera.position.set(0, 2, fitDistance);
-controls.target.set(0, 1, 0);
+const fitDistance = maxDim * 1.2;
+
+camera.position.set(0, 1.4, fitDistance);
+controls.target.set(0, 1.2, 0);
+
 
    controls.minDistance = 1;
 controls.maxDistance = fitDistance * 3;
