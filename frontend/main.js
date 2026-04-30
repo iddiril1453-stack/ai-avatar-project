@@ -64,11 +64,11 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 
 /* ========================= LIGHT */
-scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+scene.add(new THREE.AmbientLight(0xffffff, 2));
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 3);
-dirLight.position.set(5, 10, 5);
-scene.add(dirLight);
+const light = new THREE.DirectionalLight(0xffffff, 2);
+light.position.set(5, 10, 5);
+scene.add(light);
 
 /* ========================= MOUSE */
 window.addEventListener("mousemove", (e) => {
