@@ -94,7 +94,7 @@ loader.load(
     scene.add(model);
 
     // 🔥 SCALE (DEV OLMASIN)
-    model.scale.set(0.10, 0.10, 0.10);
+    model.scale.set(0.13, 0.13, 0.13);
 
     // 🔥 ORTAYA AL
     model.position.set(0, 0, 0);
