@@ -200,21 +200,25 @@ function animate() {
      HEAD MOTION (SADE VE STABİL)
   ========================= */
   if (head) {
+if (head) {
 
-    if (avatarState === "talking") {
-
-      const t = performance.now() * 0.003;
-
-      head.rotation.y = Math.sin(t) * 0.4;
-      head.rotation.x = Math.sin(t * 1.2) * 0.2;
-
-    } else {
-
-      head.rotation.y *= 0.9;
-      head.rotation.x *= 0.9;
-    }
+  if (avatarState === "listening") {
+    head.rotation.y = Math.sin(performance.now() * 0.01) * 0.15;
   }
 
+  else if (avatarState === "talking") {
+
+    const t = performance.now() * 0.003;
+
+    head.rotation.y = Math.sin(t) * 0.4;
+    head.rotation.x = Math.sin(t * 1.2) * 0.2;
+
+  } else {
+
+    head.rotation.y *= 0.9;
+    head.rotation.x *= 0.9;
+  }
+}
   /* =========================
      BREATH (SADECE IDLE)
   ========================= */
@@ -327,34 +331,10 @@ async function startMic() {
       audioChunks.push(e.data);
     };
 
-    mediaRecorder.onstop = async () => {
-
-      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-
-      const formData = new FormData();
-      formData.append("file", audioBlob, "audio.webm");
-
-      try {
-
-        const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
-          method: "POST",
-          body: formData
-        });
-
-        const text = await res.text();
-        console.log("WHISPER RAW RESPONSE:", text);
-
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          console.error("WHISPER JSON ERROR ❌", text);
-          return;
-        }
-
-        if (data.text) {
-          sendMessageFromVoice(data.text);
-        }
+    mediaRecorder.onstop = () => {
+  const text = "test konuşma";
+  sendMessageFromVoice(text);
+};
 
       } catch (err) {
         console.error("WHISPER FETCH ERROR ❌", err);
