@@ -14,6 +14,7 @@ let characterModel;
 let brain;
 let blinkSystem;
 let mixer;
+let avatarState = "idle";
 
 let isTalking = false;
 let isThinking = false;
@@ -192,25 +193,33 @@ function animate() {
   if (mixer) mixer.update(delta);
 
   if (face) face.update(delta);
-  if (blinkSystem) blinkSystem.update(delta, isTalking);
-  if (brain) brain.update(delta, isTalking, isThinking);
+  if (blinkSystem) blinkSystem.update(delta, avatarState === "talking");
+  if (brain) brain.update(delta, avatarState === "talking", avatarState === "thinking");
 
-  /* HEAD MOTION */
-  if (head && isTalking) {
+  /* =========================
+     HEAD MOTION (SADE VE STABİL)
+  ========================= */
+  if (head) {
 
-    const t = performance.now() * 0.003;
+    if (avatarState === "talking") {
 
-    head.rotation.y += (Math.sin(t) * 0.5 - head.rotation.y) * 0.2;
-    head.rotation.x += (Math.sin(t * 1.5) * 0.25 - head.rotation.x) * 0.2;
+      const t = performance.now() * 0.003;
 
-  } else if (head) {
+      head.rotation.y = Math.sin(t) * 0.4;
+      head.rotation.x = Math.sin(t * 1.2) * 0.2;
 
-    head.rotation.y *= 0.9;
-    head.rotation.x *= 0.9;
+    } else {
+
+      head.rotation.y *= 0.9;
+      head.rotation.x *= 0.9;
+    }
   }
 
-  /* BREATH */
-  if (characterModel && !isTalking) {
+  /* =========================
+     BREATH (SADECE IDLE)
+  ========================= */
+  if (characterModel && avatarState === "idle") {
+
     breathTime += delta * 2;
     characterModel.position.y = Math.sin(breathTime) * 0.015;
   }
@@ -222,7 +231,11 @@ function animate() {
 animate();
 /* ========================= STATE */
 function setState(state) {
+
+  avatarState = state;
+
   behavior.setState(state);
+
   isTalking = state === "talking";
   isThinking = state === "thinking";
 }
@@ -258,6 +271,23 @@ async function sendMessage() {
   }
 }
 
+function sendMessageFromVoice(text) {
+
+  console.log("VOICE TEXT:", text);
+
+  setState("thinking");
+
+  fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.reply) speak(data.reply);
+  });
+}
+
 /* ========================= SPEAK (SAFE PLACEHOLDER) */
 async function speak(text) {
 
@@ -265,7 +295,6 @@ async function speak(text) {
 
   setState("talking");
 
-  // 🔥 önce varsa eski sesi durdur
   speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
@@ -275,17 +304,15 @@ async function speak(text) {
   utterance.pitch = 1;
 
   utterance.onstart = () => {
-    isTalking = true;
+    setState("talking");
   };
 
   utterance.onend = () => {
-    isTalking = false;
     setState("idle");
   };
 
   speechSynthesis.speak(utterance);
 }
-
 async function startMic() {
 
   if (isRecording) return;
@@ -302,12 +329,22 @@ async function startMic() {
 
     mediaRecorder.onstop = async () => {
 
-      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+  const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
 
-      console.log("AUDIO CAPTURED 🎤", audioBlob);
+  const formData = new FormData();
+  formData.append("file", audioBlob, "audio.webm");
 
-      // 👉 NEXT STEP: backend upload
-    };
+  const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json();
+
+  if (data.text) {
+    sendMessageFromVoice(data.text);
+  }
+};
 
     mediaRecorder.start();
     isRecording = true;
