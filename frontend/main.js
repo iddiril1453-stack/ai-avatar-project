@@ -199,7 +199,9 @@ function animate() {
   /* =========================
      HEAD MOTION (SADE VE STABİL)
   ========================= */
-  if (head) {
+ /* =========================
+   HEAD MOTION (SADE VE STABİL)
+========================= */
 if (head) {
 
   if (avatarState === "listening") {
@@ -327,24 +329,19 @@ async function startMic() {
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
 
-    mediaRecorder.ondataavailable = (e) => {
-      audioChunks.push(e.data);
-    };
+ mediaRecorder.ondataavailable = (e) => {
+  audioChunks.push(e.data);
+};
 
-    mediaRecorder.onstop = () => {
+mediaRecorder.onstop = () => {
   const text = "test konuşma";
   sendMessageFromVoice(text);
 };
 
-      } catch (err) {
-        console.error("WHISPER FETCH ERROR ❌", err);
-      }
-    };
+mediaRecorder.start();
+isRecording = true;
 
-    mediaRecorder.start();
-    isRecording = true;
-
-    console.log("MIC STARTED 🎤");
+console.log("MIC STARTED 🎤");
 
   } catch (err) {
     console.error("MIC ERROR ❌", err);
