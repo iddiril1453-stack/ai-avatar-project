@@ -329,3 +329,67 @@ function stopMic() {
 
   console.log("MIC STOPPED 🛑");
 }
+
+/* =========================
+   UI INIT (CRITICAL)
+========================= */
+window.addEventListener("DOMContentLoaded", () => {
+
+  console.log("UI READY ✅");
+
+  const sendBtn = document.getElementById("sendBtn");
+  const input = document.getElementById("userInput");
+
+  if (sendBtn) {
+    sendBtn.addEventListener("click", sendMessage);
+  } else {
+    console.warn("sendBtn NOT FOUND ❌");
+  }
+
+  if (input) {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  } else {
+    console.warn("input NOT FOUND ❌");
+  }
+
+  /* =========================
+     MIC BUTTON
+  ========================= */
+  const micBtn = document.createElement("button");
+  micBtn.innerText = "🎤 Hold to Talk";
+
+  micBtn.style.position = "absolute";
+  micBtn.style.bottom = "20px";
+  micBtn.style.right = "20px";
+  micBtn.style.padding = "12px 16px";
+  micBtn.style.borderRadius = "10px";
+  micBtn.style.border = "none";
+  micBtn.style.background = "#ff4444";
+  micBtn.style.color = "#fff";
+  micBtn.style.zIndex = 9999;
+  micBtn.style.cursor = "pointer";
+
+  document.body.appendChild(micBtn);
+
+  console.log("MIC BUTTON ADDED ✅");
+
+  const start = (e) => {
+    e.preventDefault();
+    startMic();
+  };
+
+  const stop = (e) => {
+    e.preventDefault();
+    stopMic();
+  };
+
+  micBtn.addEventListener("mousedown", start);
+  micBtn.addEventListener("mouseup", stop);
+  micBtn.addEventListener("mouseleave", stop);
+
+  micBtn.addEventListener("touchstart", start);
+  micBtn.addEventListener("touchend", stop);
+
+});
