@@ -38,7 +38,6 @@ const testCube = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
   new THREE.MeshBasicMaterial({ color: 0xff0000 })
 );
-scene.add(testCube);
 
 /* ========================= CAMERA */
 const camera = new THREE.PerspectiveCamera(
@@ -58,9 +57,9 @@ document.body.appendChild(renderer.domElement);
 
 /* ========================= CONTROLS */
 const controls = new OrbitControls(camera, renderer.domElement);
-/*controls.enableRotate = true;
+controls.enableRotate = true;
 controls.enablePan = false;
-controls.enableZoom = true;*/
+controls.enableZoom = true;
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 
@@ -81,89 +80,33 @@ window.addEventListener("mousemove", (e) => {
 const loader = new GLTFLoader();
 
 loader.load(
-  "./model.glb?v=" + Date.now(),
+  "./model.glb",
 
   (gltf) => {
 
     console.log("MODEL LOADED ✅");
 
     const model = gltf.scene;
-    characterModel = model;
-
     scene.add(model);
 
-    scene.add(model);
-model.position.set(0, 0, 0);
-model.scale.setScalar(1);
-console.log("CHILD COUNT:", model.children.length);
-console.log("MODEL:", model);
+    // 🔥 SADECE BU
+    model.position.set(0, 0, 0);
+    model.scale.set(1, 1, 1);
 
+    // 🔥 KAMERA BASİT
+    camera.position.set(0, 1.5, 3);
 
-model.traverse((c) => {
-  console.log("NODE:", c.type, c.name);
-});
-
-    model.scale.setScalar(1);
-
-    /* SAFE CENTERING */
-    const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-
-    model.position.sub(center);
-
-    /* DEBUG */
-    const helper = new THREE.BoxHelper(model, 0xff0000);
-    scene.add(helper);
-
-    /* MATERIAL FIX */
-    model.traverse((child) => {
-      if (child.isMesh) {
-
-        child.frustumCulled = false;
-        child.castShadow = true;
-        child.receiveShadow = true;
-        child.visible = true;
-
-        if (child.material) {
-          child.material.needsUpdate = true;
-          child.material.transparent = false;
-          child.material.opacity = 1;
-        }
-      }
-    });
-
-    /* CAMERA FIT */
-  const maxDim = Math.max(size.x, size.y, size.z);
-
-// 🔥 DAHA UZAK KAMERA
-const fitDistance = maxDim * 3.5;
-
-// 🔥 MERKEZ
-const centerY = size.y * 0.5;
-
-// 🔥 KAMERA DIŞARI
-camera.position.set(0, centerY, fitDistance);
-
-// 🔥 TAM ORTAYA BAK
-controls.target.set(0, centerY, 0);
-
-controls.minDistance = fitDistance * 0.5;
-controls.maxDistance = fitDistance * 5;
-
-controls.update();
-
-    blinkSystem = new BlinkSystem(characterModel);
+    // 🔥 ORTAYA BAK
+    controls.target.set(0, 1, 0);
+    controls.update();
 
     console.log("MODEL READY ✅");
   },
 
-  (xhr) => {
-    console.log("LOADING:", (xhr.loaded / xhr.total * 100).toFixed(2) + "%");
-  },
+  undefined,
 
   (error) => {
-    console.error("❌ MODEL LOAD ERROR:", error);
+    console.error("MODEL LOAD ERROR ❌", error);
   }
 );
 
