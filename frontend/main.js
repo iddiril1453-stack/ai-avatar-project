@@ -79,8 +79,11 @@ window.addEventListener("mousemove", (e) => {
 /* ========================= LOAD MODEL */
 const loader = new GLTFLoader();
 
+
+
 loader.load(
   "./model.glb",
+
 
   (gltf) => {
 
@@ -88,10 +91,55 @@ loader.load(
 
     const model = gltf.scene;
 
+    console.log("ANIMATIONS:", gltf.animations);
+
     // 🔥 BUNU EKLE (ÇOK ÖNEMLİ)
     characterModel = model;
 
     scene.add(model);
+
+    /* =========================
+   ANIMATION MIXER (IDLE FIX)
+========================= */
+mixer = new THREE.AnimationMixer(model);
+
+if (gltf.animations && gltf.animations.length > 0) {
+
+  const idleClip =
+    gltf.animations.find(a =>
+      a.name.toLowerCase().includes("idle")
+    ) || gltf.animations[0];
+
+  const action = mixer.clipAction(idleClip);
+
+  action.reset();
+  action.play();
+  action.setLoop(THREE.LoopRepeat);
+  action.enabled = true;
+
+  console.log("IDLE SELECTED:", idleClip.name);
+
+} else {
+  console.warn("NO ANIMATIONS FOUND ❌");
+}
+
+console.log("ANIM COUNT:", gltf.animations.length);
+console.log("ANIM NAMES:", gltf.animations.map(a => a.name));
+
+/* =========================
+   FACE + BLINK INIT
+========================= */
+face = new FaceController(model);
+blinkSystem = new BlinkSystem(model);
+
+console.log("FACE + BLINK READY ✅");
+
+/* =========================
+   BRAIN SYSTEM INIT
+========================= */
+brain = new AnimationBrain(model);
+
+console.log("BRAIN READY ✅");
 
     // 🔥 SCALE (DEV OLMASIN)
     model.scale.set(0.13, 0.13, 0.13);
@@ -123,9 +171,13 @@ function animate() {
 
   const delta = clock.getDelta();
 
-  if (mixer) mixer.update(delta);
+if (mixer) {
+  mixer.update(delta);
+}
+
   if (face) face.update(delta);
-  if (brain) brain.update(delta, isTalking, isThinking);
+if (blinkSystem) blinkSystem.update(delta, isTalking);
+if (brain) brain.update(delta, isTalking, isThinking);
 
   if (characterModel && blinkSystem) {
     blinkSystem.update(delta, isTalking);
