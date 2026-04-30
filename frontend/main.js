@@ -18,6 +18,10 @@ let mixer;
 let isTalking = false;
 let isThinking = false;
 
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+
 let breathTime = 0;
 let currentAudio = null;
 
@@ -246,4 +250,44 @@ window.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") sendMessage();
   });
 
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "r") startMic();
+    if (e.key === "s") stopMic();
+  });
+
 });
+async function startMic() {
+
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  mediaRecorder = new MediaRecorder(stream);
+
+  audioChunks = [];
+
+  mediaRecorder.ondataavailable = (e) => {
+    audioChunks.push(e.data);
+  };
+
+  mediaRecorder.onstop = async () => {
+
+    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+    console.log("AUDIO CAPTURED 🎤", audioBlob);
+
+    // 👉 şimdilik sadece log (sonraki adım backend)
+  };
+
+  mediaRecorder.start();
+  isRecording = true;
+
+  console.log("MIC STARTED 🎤");
+}
+function stopMic() {
+
+  if (!mediaRecorder) return;
+
+  mediaRecorder.stop();
+  isRecording = false;
+
+  console.log("MIC STOPPED 🛑");
+}
