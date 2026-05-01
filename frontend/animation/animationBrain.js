@@ -2,19 +2,11 @@ export class AnimationBrain {
   constructor(model) {
     this.model = model;
 
-    // STATE SYSTEM
     this.state = "idle";
-
-    // INTERNAL TIMERS
     this.time = 0;
 
-    // TARGETS
     this.targetRotation = { x: 0, y: 0 };
   }
-
-  /* =========================
-     STATE CONTROL
-  ========================= */
 
   setState(state) {
     this.state = state;
@@ -24,11 +16,7 @@ export class AnimationBrain {
     return this.state === state;
   }
 
-  /* =========================
-     UPDATE LOOP
-  ========================= */
-
-  update(delta, mouse, isTalking) {
+  update(delta, mouse = { x: 0, y: 0 }, isTalking = false, isThinking = false, isListening = false) {
     this.time += delta;
 
     this.handleIdleMotion();
@@ -39,21 +27,12 @@ export class AnimationBrain {
     }
   }
 
-  /* =========================
-     IDLE ANIMATION
-  ========================= */
-
   handleIdleMotion() {
     if (!this.model) return;
 
     const breathe = Math.sin(this.time * 2) * 0.002;
-
     this.model.position.y += breathe;
   }
-
-  /* =========================
-     MOUSE LOOK (HEAD CONTROL)
-  ========================= */
 
   handleMouseLook(mouse) {
     if (!this.model || !this.model.head) return;
@@ -68,10 +47,6 @@ export class AnimationBrain {
       (this.targetRotation.x - this.model.head.rotation.x) * 0.05;
   }
 
-  /* =========================
-     TALK ANIMATION (FAKE)
-  ========================= */
-
   handleTalking() {
     if (!this.model) return;
 
@@ -81,7 +56,6 @@ export class AnimationBrain {
       this.model.jaw.rotation.x = jawMovement;
     }
 
-    // micro head motion
     if (this.model.head) {
       this.model.head.rotation.y += Math.sin(this.time * 5) * 0.002;
     }

@@ -194,7 +194,7 @@ function animate() {
 
   if (face) face.update(delta);
   if (blinkSystem) blinkSystem.update(delta, avatarState === "talking");
-  if (brain) brain.update(delta, avatarState === "talking", avatarState === "thinking");
+  if (brain) brain.update(delta, mouse, isTalking, isThinking, avatarState === "listening");
 
   /* =========================
      HEAD MOTION (SADE VE STABİL)
@@ -351,7 +351,9 @@ function stopMic() {
 
   mediaRecorder.onstop = async () => {
 
-    const audioBlob = new Blob(audioChunks, { type: "audio/webm;codecs=opus" });
+    const audioBlob = new Blob(audioChunks, {
+  type: "audio/webm;codecs=opus"
+});
 
     const formData = new FormData();
     formData.append("file", audioBlob, "audio.webm");
@@ -365,7 +367,13 @@ function stopMic() {
       const data = await res.json();
 
       console.log("WHISPER:", data);
+console.log("WHISPER:", data);
 
+if (data.text) {
+  sendMessageFromVoice(data.text);
+} else {
+  setState("idle");
+}
       
 
     } catch (err) {

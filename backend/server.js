@@ -75,17 +75,14 @@ app.post("/whisper", upload.single("file"), async (req, res) => {
 
     const filePath = req.file.path;
 
-// 🔥 FORCE EXTENSION (ÖNEMLİ)
-const fixedPath = filePath + ".webm";
-fs.renameSync(filePath, fixedPath);
+const transcription = await openai.audio.transcriptions.create({
+  file: fs.createReadStream(filePath),
+  model: "gpt-4o-mini-transcribe"
+});
 
-    const transcription = await openai.audio.transcriptions.create({
-      file: fs.createReadStream(filePath),
-      model: "gpt-4o-mini-transcribe"
-    });
+// cleanup doğru dosya
+fs.unlink(filePath, () => {});
 
-    // cleanup file
-    fs.unlink(filePath, () => {});
 
     res.json({ text: transcription.text });
 
