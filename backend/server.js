@@ -3,6 +3,8 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import path from "path";
 import OpenAI from "openai";
+import multer from "multer";
+import fs from "fs";
 
 import { handleChat } from "./services/chatService.js";
 
@@ -15,7 +17,7 @@ const __dirname = path.resolve();
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-
+const upload = multer({ dest: "uploads/" });
 /* =========================
    PATHS
 ========================= */
@@ -47,7 +49,26 @@ app.post("/chat", async (req, res) => {
     });
   }
 });
+app.post("/whisper", upload.single("file"), async (req, res) => {
+  try {
 
+    const filePath = req.file.path;
+
+    const transcription = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(filePath),
+      model: "gpt-4o-mini-transcribe"
+    });
+
+    // 🔥 EKLE (ÇOK ÖNEMLİ)
+    fs.unlinkSync(filePath);
+
+    res.json({ text: transcription.text });
+
+  } catch (err) {
+    console.error("WHISPER ERROR:", err);
+    res.status(500).json({ error: "whisper failed" });
+  }
+});
 /* =========================
    TTS (FIX - NO FILE, DIRECT STREAM)
 ========================= */

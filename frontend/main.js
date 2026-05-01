@@ -265,7 +265,9 @@ async function sendMessage() {
       body: JSON.stringify({ message: text })
     });
 
-    const data = await res.json();
+    const text = await res.text();
+console.log("WHISPER RAW:", text);
+return;
 
     if (data.reply) {
       speak(data.reply);
