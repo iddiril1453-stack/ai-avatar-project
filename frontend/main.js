@@ -110,6 +110,8 @@ loader.load(
 
     try {
       brain = new AnimationBrain(model);
+
+      brain.model.head = head;
     } catch (err) {
       console.error("BRAIN ERROR ❌", err);
       brain = null;
@@ -137,7 +139,9 @@ function animate() {
   if (blinkSystem) blinkSystem.update(delta, avatarState === "talking");
 
   if (brain) {
-    brain.update(delta, mouse, isTalking, isThinking, avatarState === "listening");
+    brain.setState(avatarState);
+
+brain.update(delta, mouse);
   }
 
   /* HEAD */
@@ -177,6 +181,7 @@ function setState(state) {
   behavior.setState(state);
   isTalking = state === "talking";
   isThinking = state === "thinking";
+  if (brain) brain.setState(state);
 }
 
 /* ========================= CORE CHAT */

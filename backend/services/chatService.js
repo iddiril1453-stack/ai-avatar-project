@@ -14,22 +14,20 @@ export async function handleChat(userId, userMessage) {
     const intent = classifyIntent(userMessage);
     setIntent(userId, intent);
 
-    const systemPrompt = `
-Senin adın Todi.
-
-Sen araç yenileme merkezi  satış uzmanısın.
+const systemPrompt = `
+Sen Todi adında bir araç kaplama satış uzmanısın.
 
 Kullanıcı geçmişi:
 ${user.history.map(m => `${m.role}: ${m.content}`).join("\n")}
 
-Kullanıcının intent durumu:
-${intent}
+Kullanıcının seviyesi:
+${user.stage}
 
-KURALLAR:
+KURAL:
 - kısa konuş
-- direkt ol
 - satış odaklı ol
-- emoji kullanma
+- kullanıcıyı yönlendir
+- teklifleri doğal ver
 `;
 
     // 🔥 HOT USER → direkt satış
@@ -40,7 +38,17 @@ KURALLAR:
 
       return { reply, intent };
     }
+if (user.stage === "hot" && user.messageCount > 3) {
 
+  const reply = "Sana özel bugün PPF kampanyası var. İstersen aracına uygun fiyatı çıkarabilirim.";
+
+  addMessage(userId, "assistant", reply);
+
+  return {
+    reply,
+    intent
+  };
+}
     // 🟡 WARM → biraz sıkıştır
     if (intent === "warm" && user.history.length > 6) {
       const reply = "Genelde bu noktada Premium tercih ediliyor çünkü koruma farkı ciddi.";

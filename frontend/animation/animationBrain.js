@@ -31,7 +31,11 @@ export class AnimationBrain {
     if (!this.model) return;
 
     const breathe = Math.sin(this.time * 2) * 0.002;
-    this.model.position.y += breathe;
+    if (!this.baseY) {
+  this.baseY = this.model.position.y;
+}
+
+this.model.position.y = this.baseY + Math.sin(this.time * 2) * 0.01;
   }
 
   handleMouseLook(mouse) {
