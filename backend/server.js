@@ -12,9 +12,10 @@ const app = express();
 const __dirname = path.resolve();
 
 /* =========================
-   UPLOAD FOLDER
+   UPLOAD FOLDER (SAFE INIT)
 ========================= */
 const uploadDir = "uploads";
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
@@ -27,12 +28,12 @@ const openai = new OpenAI({
 });
 
 /* =========================
-   MULTER
+   MULTER CONFIG
 ========================= */
 const upload = multer({ dest: uploadDir });
 
 /* =========================
-   FRONTEND
+   FRONTEND PATH
 ========================= */
 const distPath = path.join(__dirname, "frontend", "dist");
 
@@ -44,32 +45,32 @@ app.use(bodyParser.json());
 app.use(express.static(distPath));
 
 /* =========================
-   CHAT
+   CHAT API
 ========================= */
 app.post("/chat", async (req, res) => {
   try {
     const message = req.body.message;
 
-    if (!message) {
-      return res.status(400).json({ reply: "empty message" });
-    }
-
     const result = await handleChat(message);
-    res.json(result);
 
+    res.json(result);
   } catch (err) {
     console.error("CHAT ERROR:", err);
-    res.status(500).json({ reply: "error", intent: "cold" });
+
+    res.status(500).json({
+      reply: "error",
+      intent: "cold"
+    });
   }
 });
 
 /* =========================
-   WHISPER
+   WHISPER (VOICE TO TEXT)
 ========================= */
 app.post("/whisper", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "no file" });
+      return res.status(400).json({ error: "no file received" });
     }
 
     const filePath = req.file.path;
@@ -79,18 +80,23 @@ app.post("/whisper", upload.single("file"), async (req, res) => {
       model: "gpt-4o-mini-transcribe"
     });
 
+    // cleanup file
     fs.unlink(filePath, () => {});
 
     res.json({ text: transcription.text });
 
   } catch (err) {
     console.error("WHISPER ERROR:", err);
-    res.status(500).json({ error: "whisper failed" });
+
+    res.status(500).json({
+      error: "whisper failed",
+      detail: err.message
+    });
   }
 });
 
 /* =========================
-   TTS
+   TTS (TEXT TO SPEECH)
 ========================= */
 app.post("/tts", async (req, res) => {
   try {
@@ -109,24 +115,33 @@ app.post("/tts", async (req, res) => {
 
   } catch (err) {
     console.error("TTS ERROR:", err);
-    res.status(500).json({ error: "tts failed" });
+
+    res.status(500).json({
+      error: "TTS failed"
+    });
   }
 });
 
 /* =========================
-   ROUTES
+   ROOT
 ========================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
+/* =========================
+   SPA FALLBACK
+========================= */
 app.get("*", (req, res) => {
-  if (req.path.includes(".")) return res.status(404).end();
+  if (req.path.includes(".")) {
+    return res.status(404).end();
+  }
+
   res.sendFile(path.join(distPath, "index.html"));
 });
 
 /* =========================
-   START
+   START SERVER
 ========================= */
 const PORT = process.env.PORT || 3000;
 
