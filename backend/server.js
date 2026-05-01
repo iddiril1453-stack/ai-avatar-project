@@ -49,11 +49,11 @@ app.use(express.static(distPath));
 ========================= */
 app.post("/chat", async (req, res) => {
   try {
-    const message = req.body.message;
-
-    const result = await handleChat(message);
+    const { userId, message } = req.body;
+const result = await handleChat(userId, message);
 
     res.json(result);
+
   } catch (err) {
     console.error("CHAT ERROR:", err);
 

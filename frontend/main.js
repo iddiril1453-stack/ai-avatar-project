@@ -258,12 +258,23 @@ async function sendMessage() {
 
   setState("thinking");
 
+function createUserId() {
+  const id = "user-" + Math.random().toString(36).substring(2);
+  localStorage.setItem("userId", id);
+  return id;
+}
+
   try {
     const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-user-id": localStorage.getItem("userId") || createUserId()
+  },
+  body: JSON.stringify({
+  userId: localStorage.getItem("uid"),
+  message: text
+})
 
    const data = await res.json();
 
@@ -286,8 +297,10 @@ function sendMessageFromVoice(text) {
   fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: text })
-  })
+   body: JSON.stringify({
+  userId: localStorage.getItem("uid"),
+  message: text
+})
   .then(r => r.json())
   .then(data => {
     if (data.reply) speak(data.reply);
@@ -395,6 +408,16 @@ if (data.text) {
    UI INIT (CRITICAL)
 ========================= */
 window.addEventListener("DOMContentLoaded", () => {
+
+  // 🧠 USER ID OLUŞTUR
+  if (!localStorage.getItem("uid")) {
+    localStorage.setItem(
+      "uid",
+      "user_" + Math.random().toString(36).substr(2, 9)
+    );
+  }
+
+  console.log("USER ID:", localStorage.getItem("uid"));
 
   console.log("UI READY ✅");
 

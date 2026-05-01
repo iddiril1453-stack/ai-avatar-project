@@ -1,68 +1,59 @@
 import { generateAIResponse } from "./aiService.js";
 import { classifyIntent } from "./userIntentClassifier.js";
 import { salesEngine } from "./salesEngine.js";
+import { getUser, addMessage, setIntent } from "./memoryStore.js";
 
-console.log("CHAT SERVICE LOADED");
-
-const COMPANY_INFO = `
-Todikar araç kaplama merkezidir.
-
-PPF = en güçlü koruma
-Deluxe = parça kaplama
-Premium = full araç kaplama
-`;
-
-export async function handleChat(userMessage) {
+export async function handleChat(userId, userMessage) {
   try {
 
-    const intent = classifyIntent(userMessage);
+    const user = getUser(userId);
 
-   const systemPrompt = `
+    // 🧠 USER MESSAGE KAYDET
+    addMessage(userId, "user", userMessage);
+
+    const intent = classifyIntent(userMessage);
+    setIntent(userId, intent);
+
+    const systemPrompt = `
 Senin adın Todi.
 
-Sen bir araç kaplama (PPF) satış asistanısın.
+Sen araç yenileme merkezi  satış uzmanısın.
+
+Kullanıcı geçmişi:
+${user.history.map(m => `${m.role}: ${m.content}`).join("\n")}
+
+Kullanıcının intent durumu:
+${intent}
 
 KURALLAR:
-- Emoji kullanma (ASLA)
-- El sallama, aksiyon anlatma yapma
-- “benim adım yok” deme
-- Kısa ve direkt konuş
-- Robot gibi değil, doğal insan gibi konuş
-- Gereksiz açıklama yapma
-
-GÖREV:
-- Kullanıcıya PPF ve araç koruma hakkında yardımcı ol
-- Satışa uygun fırsatları fark et
-
-Şirket:
-${COMPANY_INFO}
+- kısa konuş
+- direkt ol
+- satış odaklı ol
+- emoji kullanma
 `;
 
-    // 👋 GREET
-    if (intent === "greet") {
-      return {
-        reply: "Merhaba 👋 ben Todi. Aracın için en iyi koruma çözümlerini sunabilirim.",
-        intent
-      };
-    }
-
-    // 🔥 HOT = SALES
+    // 🔥 HOT USER → direkt satış
     if (intent === "hot") {
-      return {
-        reply: salesEngine(userMessage, intent),
-        intent
-      };
+      const reply = salesEngine(userMessage, intent);
+
+      addMessage(userId, "assistant", reply);
+
+      return { reply, intent };
     }
 
-    if (intent === "warm" && conversationHistory.length > 4) {
-  return {
-    reply: "Genelde bu noktada kullanıcılar Premium pakete geçiyor çünkü koruma farkı ciddi.",
-    intent
-  };
-}
+    // 🟡 WARM → biraz sıkıştır
+    if (intent === "warm" && user.history.length > 6) {
+      const reply = "Genelde bu noktada Premium tercih ediliyor çünkü koruma farkı ciddi.";
 
-    // 🤖 AI
+      addMessage(userId, "assistant", reply);
+
+      return { reply, intent };
+    }
+
+    // 🤖 AI RESPONSE
     const aiReply = await generateAIResponse(userMessage, systemPrompt);
+
+    addMessage(userId, "assistant", aiReply);
 
     return {
       reply: aiReply,
