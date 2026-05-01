@@ -54,6 +54,13 @@ ${COMPANY_INFO}
       };
     }
 
+    if (intent === "warm" && conversationHistory.length > 4) {
+  return {
+    reply: "Genelde bu noktada kullanıcılar Premium pakete geçiyor çünkü koruma farkı ciddi.",
+    intent
+  };
+}
+
     // 🤖 AI
     const aiReply = await generateAIResponse(userMessage, systemPrompt);
 

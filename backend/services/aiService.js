@@ -20,6 +20,15 @@ export async function generateAIResponse(userMessage, systemPrompt = "") {
 
     const client = getOpenAI();
 
+    // 🔥 kullanıcı mesajını ekle
+    conversationHistory.push({
+      role: "user",
+      content: userMessage
+    });
+
+    // 🔥 son 10 mesajı tut (memory limit)
+    const recentHistory = conversationHistory.slice(-10);
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -27,14 +36,19 @@ export async function generateAIResponse(userMessage, systemPrompt = "") {
           role: "system",
           content: systemPrompt
         },
-        {
-          role: "user",
-          content: userMessage
-        }
+        ...recentHistory
       ]
     });
 
-    return completion.choices[0].message.content;
+    const reply = completion.choices[0].message.content;
+
+    // 🔥 AI cevabını da kaydet
+    conversationHistory.push({
+      role: "assistant",
+      content: reply
+    });
+
+    return reply;
 
   } catch (err) {
     console.error("OPENAI ERROR:", err);
