@@ -24,11 +24,8 @@ let audioChunks = [];
 let isRecording = false;
 
 let breathTime = 0;
-let currentAudio = null;
 
 const mouse = { x: 0, y: 0 };
-const target = new THREE.Vector3();
-const smoothTarget = new THREE.Vector3();
 const clock = new THREE.Clock();
 
 const behavior = new AvatarBehaviorEngine();
@@ -37,12 +34,6 @@ const behavior = new AvatarBehaviorEngine();
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 scene.fog = new THREE.Fog(0x222222, 10, 50);
-
-/* DEBUG CUBE */
-const testCube = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshBasicMaterial({ color: 0xff0000 })
-);
 
 /* ========================= CAMERA */
 const camera = new THREE.PerspectiveCamera(
@@ -57,20 +48,14 @@ camera.position.set(0, 2, 5);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0x222222, 1);
 document.body.appendChild(renderer.domElement);
 
 /* ========================= CONTROLS */
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableRotate = true;
-controls.enablePan = false;
-controls.enableZoom = true;
 controls.enableDamping = true;
-controls.dampingFactor = 0.08;
 
 /* ========================= LIGHT */
 scene.add(new THREE.AmbientLight(0xffffff, 2));
-
 const light = new THREE.DirectionalLight(0xffffff, 2);
 light.position.set(5, 10, 5);
 scene.add(light);
@@ -84,154 +69,98 @@ window.addEventListener("mousemove", (e) => {
 /* ========================= LOAD MODEL */
 const loader = new GLTFLoader();
 
-
+console.log("MODEL LOAD START 🚀");
 
 loader.load(
   "./model.glb",
-
-
   (gltf) => {
 
     console.log("MODEL LOADED ✅");
 
     const model = gltf.scene;
 
-    console.log("ANIMATIONS:", gltf.animations);
-
-    // 🔥 BUNU EKLE (ÇOK ÖNEMLİ)
     characterModel = model;
-
     scene.add(model);
 
-    /* =========================
-   FIND HEAD BONE
-========================= */
-model.traverse((obj) => {
-  if (obj.isBone) {
-    if (obj.name.toLowerCase().includes("head")) {
-      head = obj;
-      console.log("HEAD FOUND ✅", obj.name);
+    /* HEAD FIND */
+    model.traverse((obj) => {
+      if (obj.isBone && obj.name.toLowerCase().includes("head")) {
+        head = obj;
+        console.log("HEAD FOUND ✅", obj.name);
+      }
+    });
+
+    /* MIXER */
+    mixer = new THREE.AnimationMixer(model);
+
+    if (gltf.animations?.length) {
+
+      const idleClip =
+        gltf.animations.find(a =>
+          a.name.toLowerCase().includes("idle")
+        ) || gltf.animations[0];
+
+      const action = mixer.clipAction(idleClip);
+      action.play();
     }
-  }
-});
 
-    /* =========================
-   ANIMATION MIXER (IDLE FIX)
-========================= */
-mixer = new THREE.AnimationMixer(model);
+    /* SYSTEMS */
+    face = new FaceController(model);
+    blinkSystem = new BlinkSystem(model);
 
-if (gltf.animations && gltf.animations.length > 0) {
+    try {
+      brain = new AnimationBrain(model);
+    } catch (err) {
+      console.error("BRAIN ERROR ❌", err);
+      brain = null;
+    }
 
-  const idleClip =
-    gltf.animations.find(a =>
-      a.name.toLowerCase().includes("idle")
-    ) || gltf.animations[0];
-
-  const action = mixer.clipAction(idleClip);
-
-action.reset();
-action.setLoop(THREE.LoopRepeat);
-action.enabled = true;
-action.play();
-
-mixer._idleAction = action; // 🔥 EKLE
-
-  console.log("IDLE SELECTED:", idleClip.name);
-
-} else {
-  console.warn("NO ANIMATIONS FOUND ❌");
-}
-
-console.log("ANIM COUNT:", gltf.animations.length);
-console.log("ANIM NAMES:", gltf.animations.map(a => a.name));
-
-/* =========================
-   FACE + BLINK INIT
-========================= */
-face = new FaceController(model);
-blinkSystem = new BlinkSystem(model);
-
-console.log("FACE + BLINK READY ✅");
-
-/* =========================
-   BRAIN SYSTEM INIT
-========================= */
-brain = new AnimationBrain(model);
-
-console.log("BRAIN READY ✅");
-
-    // 🔥 SCALE (DEV OLMASIN)
+    /* SCALE */
     model.scale.set(0.13, 0.13, 0.13);
 
-    // 🔥 ORTAYA AL
-    model.position.set(0, 0, 0);
-
-    // 🔥 KAMERA
     camera.position.set(0, 1.5, 3);
-
-    // 🔥 ORBİT TARGET
     controls.target.set(0, 1, 0);
     controls.update();
 
     console.log("MODEL READY ✅");
-  },
-
-  undefined,
-
-  (error) => {
-    console.error("MODEL LOAD ERROR ❌", error);
   }
 );
 
 /* ========================= ANIMATE */
 function animate() {
-
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
 
   if (mixer) mixer.update(delta);
-
   if (face) face.update(delta);
   if (blinkSystem) blinkSystem.update(delta, avatarState === "talking");
-  brain.update(
-  delta,
-  mouse,
-  avatarState === "talking",
-  avatarState === "thinking",
-  avatarState === "listening"
-);
 
-  /* =========================
-     HEAD MOTION (SADE VE STABİL)
-  ========================= */
- /* =========================
-   HEAD MOTION (SADE VE STABİL)
-========================= */
-if (head) {
-
-  if (avatarState === "listening") {
-    head.rotation.y = Math.sin(performance.now() * 0.01) * 0.15;
+  if (brain) {
+    brain.update(delta, mouse, isTalking, isThinking, avatarState === "listening");
   }
 
-  else if (avatarState === "talking") {
+  /* HEAD */
+  if (head) {
 
-    const t = performance.now() * 0.003;
+    if (avatarState === "listening") {
+      head.rotation.y = Math.sin(performance.now() * 0.01) * 0.15;
+    }
 
-    head.rotation.y = Math.sin(t) * 0.4;
-    head.rotation.x = Math.sin(t * 1.2) * 0.2;
+    else if (avatarState === "talking") {
+      const t = performance.now() * 0.003;
+      head.rotation.y = Math.sin(t) * 0.4;
+      head.rotation.x = Math.sin(t * 1.2) * 0.2;
+    }
 
-  } else {
-
-    head.rotation.y *= 0.9;
-    head.rotation.x *= 0.9;
+    else {
+      head.rotation.y *= 0.9;
+      head.rotation.x *= 0.9;
+    }
   }
-}
-  /* =========================
-     BREATH (SADECE IDLE)
-  ========================= */
+
+  /* BREATH */
   if (characterModel && avatarState === "idle") {
-
     breathTime += delta * 2;
     characterModel.position.y = Math.sin(breathTime) * 0.015;
   }
@@ -241,48 +170,33 @@ if (head) {
 }
 
 animate();
+
 /* ========================= STATE */
 function setState(state) {
-
   avatarState = state;
-
   behavior.setState(state);
-
   isTalking = state === "talking";
   isThinking = state === "thinking";
 }
 
-/* ========================= SEND MESSAGE (FIXED GLOBAL) */
-async function sendMessage() {
-
-  const input = document.getElementById("userInput");
-  const text = input?.value;
-
-  if (!text) return;
-
-  input.value = "";
+/* ========================= CORE CHAT */
+async function sendMessageCore(text) {
 
   setState("thinking");
 
-
-
   try {
- const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    userId: localStorage.getItem("uid"),
-    message: text
-  })
-});
+    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: localStorage.getItem("uid"),
+        message: text
+      })
+    });
 
-const data = await res.json();
+    const data = await res.json();
 
-if (data.reply) {
-  speak(data.reply);
-}
+    if (data.reply) speak(data.reply);
 
   } catch (err) {
     console.error(err);
@@ -290,188 +204,121 @@ if (data.reply) {
   }
 }
 
-function sendMessageFromVoice(text) {
+/* KEYBOARD */
+async function sendMessage() {
+  const input = document.getElementById("userInput");
+  const text = input?.value;
+  if (!text) return;
 
-  console.log("VOICE TEXT:", text);
-
-  setState("thinking");
-
- fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    userId: localStorage.getItem("uid"),
-    message: text
-  })
-})
-.then(r => r.json())
-.then(data => {
-  if (data.reply) speak(data.reply);
-});
+  input.value = "";
+  sendMessageCore(text);
 }
 
-/* ========================= SPEAK (SAFE PLACEHOLDER) */
-async function speak(text) {
+/* VOICE */
+function sendMessageFromVoice(text) {
+  sendMessageCore(text);
+}
 
-  console.log("SPEAK:", text);
+/* ========================= SPEAK */
+function speak(text) {
 
   setState("talking");
 
   speechSynthesis.cancel();
 
-  const utterance = new SpeechSynthesisUtterance(text);
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "tr-TR";
 
-  utterance.lang = "tr-TR";
-  utterance.rate = 1;
-  utterance.pitch = 1;
+  u.onend = () => setState("idle");
 
-  utterance.onstart = () => {
-    setState("talking");
-  };
-
-  utterance.onend = () => {
-    setState("idle");
-  };
-
-  speechSynthesis.speak(utterance);
+  speechSynthesis.speak(u);
 }
+
+/* ========================= MIC */
 async function startMic() {
 
   if (isRecording) return;
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
+  mediaRecorder = new MediaRecorder(stream);
+  audioChunks = [];
 
-    mediaRecorder.ondataavailable = (e) => {
-      audioChunks.push(e.data);
-    };
+  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
 
-    mediaRecorder.start();
-    isRecording = true;
+  mediaRecorder.start();
+  isRecording = true;
 
-    console.log("MIC STARTED 🎤");
-
-    setState("listening"); // 🔥 animasyon
-
-  } catch (err) {
-    console.error("MIC ERROR ❌", err);
-  }
+  setState("listening");
 }
 
 function stopMic() {
 
   if (!mediaRecorder || !isRecording) return;
 
-mediaRecorder.onstop = async () => {
+  mediaRecorder.onstop = async () => {
 
-  const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+    const blob = new Blob(audioChunks, { type: "audio/webm" });
 
-  const formData = new FormData();
-  formData.append("file", audioBlob, "audio.webm");
+    const formData = new FormData();
+    formData.append("file", blob, "audio.webm");
 
-  try {
-    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
-      method: "POST",
-      body: formData
-    });
+    try {
+      const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
+        method: "POST",
+        body: formData
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    console.log("WHISPER:", data);
+      if (data.text) sendMessageFromVoice(data.text);
 
-    if (data.text) {
-      sendMessageFromVoice(data.text);
-    } else {
+    } catch (err) {
+      console.error(err);
       setState("idle");
     }
 
-  } catch (err) {
-    console.error("WHISPER ERROR ❌", err);
-    setState("idle");
-  }
-
-  audioChunks = [];
-};
+    audioChunks = [];
+  };
 
   mediaRecorder.stop();
   isRecording = false;
-
-  console.log("MIC STOPPED 🛑");
 }
 
-/* =========================
-   UI INIT (CRITICAL)
-========================= */
+/* ========================= UI */
 window.addEventListener("DOMContentLoaded", () => {
 
-  // 🧠 USER ID OLUŞTUR
   if (!localStorage.getItem("uid")) {
-    localStorage.setItem(
-      "uid",
-      "user_" + Math.random().toString(36).substr(2, 9)
-    );
+    localStorage.setItem("uid", "user_" + Math.random().toString(36).substr(2, 9));
   }
-
-  console.log("USER ID:", localStorage.getItem("uid"));
-
-  console.log("UI READY ✅");
 
   const sendBtn = document.getElementById("sendBtn");
   const input = document.getElementById("userInput");
 
-  if (sendBtn) {
-    sendBtn.addEventListener("click", sendMessage);
-  } else {
-    console.warn("sendBtn NOT FOUND ❌");
-  }
+  sendBtn?.addEventListener("click", sendMessage);
+  input?.addEventListener("keydown", e => {
+    if (e.key === "Enter") sendMessage();
+  });
 
-  if (input) {
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
-  } else {
-    console.warn("input NOT FOUND ❌");
-  }
-
-  /* =========================
-     MIC BUTTON
-  ========================= */
   const micBtn = document.createElement("button");
-  micBtn.innerText = "🎤 Hold to Talk";
+  micBtn.innerText = "🎤 Hold";
 
-  micBtn.style.position = "absolute";
-  micBtn.style.bottom = "20px";
-  micBtn.style.right = "20px";
-  micBtn.style.padding = "12px 16px";
-  micBtn.style.borderRadius = "10px";
-  micBtn.style.border = "none";
-  micBtn.style.background = "#ff4444";
-  micBtn.style.color = "#fff";
-  micBtn.style.zIndex = 9999;
-  micBtn.style.cursor = "pointer";
+  Object.assign(micBtn.style, {
+    position: "absolute",
+    bottom: "20px",
+    right: "20px",
+    padding: "12px",
+    background: "#ff4444",
+    color: "#fff",
+    borderRadius: "10px",
+    border: "none",
+    zIndex: 9999
+  });
 
   document.body.appendChild(micBtn);
 
-  console.log("MIC BUTTON ADDED ✅");
-
-  const start = (e) => {
-    e.preventDefault();
-    startMic();
-  };
-
-  const stop = (e) => {
-    e.preventDefault();
-    stopMic();
-  };
-
-  micBtn.addEventListener("mousedown", start);
-  micBtn.addEventListener("mouseup", stop);
-  micBtn.addEventListener("mouseleave", stop);
-
-  micBtn.addEventListener("touchstart", start);
-  micBtn.addEventListener("touchend", stop);
-
+  micBtn.addEventListener("mousedown", startMic);
+  micBtn.addEventListener("mouseup", stopMic);
+  micBtn.addEventListener("touchstart", startMic);
+  micBtn.addEventListener("touchend", stopMic);
 });
