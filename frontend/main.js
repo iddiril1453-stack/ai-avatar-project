@@ -329,19 +329,16 @@ async function startMic() {
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
 
- mediaRecorder.ondataavailable = (e) => {
-  audioChunks.push(e.data);
-};
+    mediaRecorder.ondataavailable = (e) => {
+      audioChunks.push(e.data);
+    };
 
-mediaRecorder.onstop = () => {
-  const text = "test konuşma";
-  sendMessageFromVoice(text);
-};
+    mediaRecorder.start();
+    isRecording = true;
 
-mediaRecorder.start();
-isRecording = true;
+    console.log("MIC STARTED 🎤");
 
-console.log("MIC STARTED 🎤");
+    setState("listening"); // 🔥 animasyon
 
   } catch (err) {
     console.error("MIC ERROR ❌", err);
@@ -351,6 +348,37 @@ console.log("MIC STARTED 🎤");
 function stopMic() {
 
   if (!mediaRecorder || !isRecording) return;
+
+  mediaRecorder.onstop = async () => {
+
+    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+    const formData = new FormData();
+    formData.append("file", audioBlob, "audio.webm");
+
+    try {
+      const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+
+      console.log("WHISPER:", data);
+
+      if (data.text) {
+        sendMessageFromVoice(data.text);
+      } else {
+        setState("idle");
+      }
+
+    } catch (err) {
+      console.error("WHISPER ERROR ❌", err);
+      setState("idle");
+
+    }
+    audioChunks = [];
+  };
 
   mediaRecorder.stop();
   isRecording = false;
