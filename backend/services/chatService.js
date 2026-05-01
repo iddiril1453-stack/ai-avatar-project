@@ -8,6 +8,13 @@ export async function handleChat(userId, userMessage) {
 
     const user = getUser(userId);
 
+function mapIntentToState(intent) {
+  if (intent === "hot") return "talking";
+  if (intent === "warm") return "thinking";
+  return "idle";
+}
+
+
     // 🧠 USER MESSAGE KAYDET
     addMessage(userId, "user", userMessage);
 
@@ -36,7 +43,11 @@ KURAL:
 
       addMessage(userId, "assistant", reply);
 
-      return { reply, intent };
+    return {
+  reply,
+  intent,
+  state: mapIntentToState(intent)
+};
     }
 if (user.stage === "hot" && user.messageCount > 3) {
 
@@ -45,9 +56,10 @@ if (user.stage === "hot" && user.messageCount > 3) {
   addMessage(userId, "assistant", reply);
 
   return {
-    reply,
-    intent
-  };
+  reply,
+  intent,
+  state: mapIntentToState(intent)
+};
 }
     // 🟡 WARM → biraz sıkıştır
     if (intent === "warm" && user.history.length > 6) {
@@ -55,7 +67,11 @@ if (user.stage === "hot" && user.messageCount > 3) {
 
       addMessage(userId, "assistant", reply);
 
-      return { reply, intent };
+  return {
+  reply,
+  intent,
+  state: mapIntentToState(intent)
+};
     }
 
     // 🤖 AI RESPONSE
@@ -63,17 +79,19 @@ if (user.stage === "hot" && user.messageCount > 3) {
 
     addMessage(userId, "assistant", aiReply);
 
-    return {
-      reply: aiReply,
-      intent
-    };
+ return {
+  reply,
+  intent,
+  state: mapIntentToState(intent)
+};
 
   } catch (err) {
     console.error("CHAT ERROR:", err);
 
-    return {
-      reply: "Bir hata oluştu",
-      intent: "cold"
-    };
+ return {
+  reply: "Bir hata oluştu",
+  intent: "cold",
+  state: "idle"
+};
   }
 }

@@ -52,7 +52,11 @@ app.post("/chat", async (req, res) => {
     const { userId, message } = req.body;
 const result = await handleChat(userId, message);
 
-    res.json(result);
+    res.json({
+  reply: result.reply,
+  intent: result.intent,
+  state: result.state || "idle"
+});
 
   } catch (err) {
     console.error("CHAT ERROR:", err);

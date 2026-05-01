@@ -1,6 +1,7 @@
 export class AnimationBrain {
-  constructor(model) {
-    this.model = model;
+  constructor(model, head) {
+  this.model = model;
+  this.head = head;
 
     this.state = "idle";
     this.time = 0;
@@ -16,52 +17,53 @@ export class AnimationBrain {
     return this.state === state;
   }
 
-  update(delta, mouse = { x: 0, y: 0 }, isTalking = false, isThinking = false, isListening = false) {
+  update(delta, mouse = { x: 0, y: 0 }) {
     this.time += delta;
 
     this.handleIdleMotion();
     this.handleMouseLook(mouse);
 
-    if (isTalking || this.state === "talking") {
-      this.handleTalking();
-    }
+    if (this.state === "talking") this.handleTalking();
+    if (this.state === "listening") this.handleListening();
   }
 
   handleIdleMotion() {
     if (!this.model) return;
 
-    const breathe = Math.sin(this.time * 2) * 0.002;
     if (!this.baseY) {
-  this.baseY = this.model.position.y;
+      this.baseY = this.model.position.y;
+    }
+
+    this.model.position.y =
+      this.baseY + Math.sin(this.time * 2) * 0.01;
+  }
+
+handleMouseLook(mouse) {
+  if (!this.head) return;
+
+  this.targetRotation.y = mouse.x * 0.5;
+  this.targetRotation.x = mouse.y * 0.3;
+
+  this.head.rotation.y +=
+    (this.targetRotation.y - this.head.rotation.y) * 0.05;
+
+  this.head.rotation.x +=
+    (this.targetRotation.x - this.head.rotation.x) * 0.05;
 }
 
-this.model.position.y = this.baseY + Math.sin(this.time * 2) * 0.01;
-  }
+handleTalking() {
+  if (!this.head) return;
 
-  handleMouseLook(mouse) {
-    if (!this.model || !this.model.head) return;
+  const t = this.time;
 
-    this.targetRotation.y = mouse.x * 0.5;
-    this.targetRotation.x = mouse.y * 0.3;
+  this.head.rotation.y = Math.sin(t * 5) * 0.3;
+  this.head.rotation.x = Math.sin(t * 3) * 0.15;
+}
 
-    this.model.head.rotation.y +=
-      (this.targetRotation.y - this.model.head.rotation.y) * 0.05;
+handleListening() {
+  if (!this.head) return;
 
-    this.model.head.rotation.x +=
-      (this.targetRotation.x - this.model.head.rotation.x) * 0.05;
-  }
-
-  handleTalking() {
-    if (!this.model) return;
-
-    const jawMovement = Math.sin(this.time * 20) * 0.05;
-
-    if (this.model.jaw) {
-      this.model.jaw.rotation.x = jawMovement;
-    }
-
-    if (this.model.head) {
-      this.model.head.rotation.y += Math.sin(this.time * 5) * 0.002;
-    }
-  }
+  this.head.rotation.y =
+    Math.sin(this.time * 3) * 0.2;
+}
 }

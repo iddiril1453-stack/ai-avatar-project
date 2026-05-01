@@ -109,9 +109,9 @@ loader.load(
     blinkSystem = new BlinkSystem(model);
 
     try {
-      brain = new AnimationBrain(model);
+      brain = new AnimationBrain(model, head || null);
 
-      brain.model.head = head;
+      
     } catch (err) {
       console.error("BRAIN ERROR ❌", err);
       brain = null;
@@ -138,35 +138,25 @@ function animate() {
   if (face) face.update(delta);
   if (blinkSystem) blinkSystem.update(delta, avatarState === "talking");
 
-  if (brain) {
+if (brain) {
+  if (brain.state !== avatarState) {
     brain.setState(avatarState);
-
-brain.update(delta, mouse);
   }
 
-  /* HEAD */
-  if (head) {
+  brain.update(delta, mouse);
+}
 
-    if (avatarState === "listening") {
-      head.rotation.y = Math.sin(performance.now() * 0.01) * 0.15;
-    }
 
-    else if (avatarState === "talking") {
-      const t = performance.now() * 0.003;
-      head.rotation.y = Math.sin(t) * 0.4;
-      head.rotation.x = Math.sin(t * 1.2) * 0.2;
-    }
-
-    else {
-      head.rotation.y *= 0.9;
-      head.rotation.x *= 0.9;
-    }
-  }
 
   /* BREATH */
   if (characterModel && avatarState === "idle") {
     breathTime += delta * 2;
-    characterModel.position.y = Math.sin(breathTime) * 0.015;
+    if (!characterModel.baseY) {
+  characterModel.baseY = characterModel.position.y;
+}
+
+characterModel.position.y =
+  characterModel.baseY + Math.sin(breathTime) * 0.015;
   }
 
   controls.update();
@@ -201,7 +191,14 @@ async function sendMessageCore(text) {
 
     const data = await res.json();
 
-    if (data.reply) speak(data.reply);
+    if (data.reply) {
+
+  speak(data.reply);
+
+  if (data.state) {
+    setState(data.state);   // 🔥 server brain sync
+  }
+}
 
   } catch (err) {
     console.error(err);
