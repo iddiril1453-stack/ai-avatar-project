@@ -73,15 +73,21 @@ app.post("/whisper", upload.single("file"), async (req, res) => {
       return res.status(400).json({ error: "no file received" });
     }
 
-    const filePath = req.file.path;
+   const filePath = req.file.path;
+
+// uzantı zorla
+const newPath = filePath + ".webm";
+fs.renameSync(filePath, newPath);
 
 const transcription = await openai.audio.transcriptions.create({
-  file: fs.createReadStream(filePath),
+  file: fs.createReadStream(newPath),
   model: "gpt-4o-mini-transcribe"
 });
 
-// cleanup doğru dosya
-fs.unlink(filePath, () => {});
+fs.unlink(newPath, () => {});
+
+const mime = req.file.mimetype;
+console.log("MIME:", mime);
 
 
     res.json({ text: transcription.text });

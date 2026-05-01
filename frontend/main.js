@@ -353,6 +353,8 @@ function stopMic() {
 
    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
 
+   formData.append("file", audioBlob, "recording.webm");
+
     const formData = new FormData();
     formData.append("file", audioBlob, "audio.webm");
 
