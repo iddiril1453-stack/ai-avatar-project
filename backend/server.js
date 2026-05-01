@@ -12,14 +12,27 @@ const app = express();
 const __dirname = path.resolve();
 
 /* =========================
+   UPLOAD FOLDER
+========================= */
+const uploadDir = "uploads";
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+/* =========================
    OPENAI
 ========================= */
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-const upload = multer({ dest: "uploads/" });
+
 /* =========================
-   PATHS
+   MULTER
+========================= */
+const upload = multer({ dest: uploadDir });
+
+/* =========================
+   FRONTEND
 ========================= */
 const distPath = path.join(__dirname, "frontend", "dist");
 
@@ -28,29 +41,36 @@ const distPath = path.join(__dirname, "frontend", "dist");
 ========================= */
 app.use(cors());
 app.use(bodyParser.json());
-
-/* =========================
-   FRONTEND
-========================= */
 app.use(express.static(distPath));
 
 /* =========================
-   CHAT API
+   CHAT
 ========================= */
 app.post("/chat", async (req, res) => {
   try {
-    const result = await handleChat(req.body.message);
+    const message = req.body.message;
+
+    if (!message) {
+      return res.status(400).json({ reply: "empty message" });
+    }
+
+    const result = await handleChat(message);
     res.json(result);
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      reply: "error",
-      intent: "cold"
-    });
+    console.error("CHAT ERROR:", err);
+    res.status(500).json({ reply: "error", intent: "cold" });
   }
 });
+
+/* =========================
+   WHISPER
+========================= */
 app.post("/whisper", upload.single("file"), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "no file" });
+    }
 
     const filePath = req.file.path;
 
@@ -59,8 +79,7 @@ app.post("/whisper", upload.single("file"), async (req, res) => {
       model: "gpt-4o-mini-transcribe"
     });
 
-    // 🔥 EKLE (ÇOK ÖNEMLİ)
-    fs.unlinkSync(filePath);
+    fs.unlink(filePath, () => {});
 
     res.json({ text: transcription.text });
 
@@ -69,8 +88,9 @@ app.post("/whisper", upload.single("file"), async (req, res) => {
     res.status(500).json({ error: "whisper failed" });
   }
 });
+
 /* =========================
-   TTS (FIX - NO FILE, DIRECT STREAM)
+   TTS
 ========================= */
 app.post("/tts", async (req, res) => {
   try {
@@ -88,29 +108,20 @@ app.post("/tts", async (req, res) => {
     res.send(buffer);
 
   } catch (err) {
-    console.error("TTS FULL ERROR:", err);
-    console.error("TTS MESSAGE:", err.message);
-
-    res.status(500).json({
-      error: "TTS failed"
-    });
+    console.error("TTS ERROR:", err);
+    res.status(500).json({ error: "tts failed" });
   }
 });
 
 /* =========================
-   ROOT
+   ROUTES
 ========================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
-/* =========================
-   SPA FALLBACK
-========================= */
 app.get("*", (req, res) => {
-  if (req.path.includes(".")) {
-    return res.status(404).end();
-  }
+  if (req.path.includes(".")) return res.status(404).end();
   res.sendFile(path.join(distPath, "index.html"));
 });
 
