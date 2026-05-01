@@ -194,7 +194,13 @@ function animate() {
 
   if (face) face.update(delta);
   if (blinkSystem) blinkSystem.update(delta, avatarState === "talking");
-  if (brain) brain.update(delta, mouse, isTalking, isThinking, avatarState === "listening");
+  brain.update(
+  delta,
+  mouse,
+  avatarState === "talking",
+  avatarState === "thinking",
+  avatarState === "listening"
+);
 
   /* =========================
      HEAD MOTION (SADE VE STABİL)
@@ -258,25 +264,21 @@ async function sendMessage() {
 
   setState("thinking");
 
-function createUserId() {
-  const id = "user-" + Math.random().toString(36).substring(2);
-  localStorage.setItem("userId", id);
-  return id;
-}
+
 
   try {
-    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
+ const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
   method: "POST",
   headers: {
-    "Content-Type": "application/json",
-    "x-user-id": localStorage.getItem("userId") || createUserId()
+    "Content-Type": "application/json"
   },
   body: JSON.stringify({
-  userId: localStorage.getItem("uid"),
-  message: text
-})
+    userId: localStorage.getItem("uid"),
+    message: text
+  })
+});
 
-   const data = await res.json();
+const data = await res.json();
 
 if (data.reply) {
   speak(data.reply);
@@ -294,17 +296,18 @@ function sendMessageFromVoice(text) {
 
   setState("thinking");
 
-  fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-   body: JSON.stringify({
-  userId: localStorage.getItem("uid"),
-  message: text
+ fetch("https://ai-avatar-project-d2r9.onrender.com/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    userId: localStorage.getItem("uid"),
+    message: text
+  })
 })
-  .then(r => r.json())
-  .then(data => {
-    if (data.reply) speak(data.reply);
-  });
+.then(r => r.json())
+.then(data => {
+  if (data.reply) speak(data.reply);
+});
 }
 
 /* ========================= SPEAK (SAFE PLACEHOLDER) */
@@ -362,41 +365,36 @@ function stopMic() {
 
   if (!mediaRecorder || !isRecording) return;
 
-  mediaRecorder.onstop = async () => {
+mediaRecorder.onstop = async () => {
 
-   const transcription = await openai.audio.transcriptions.create({
-  file: fs.createReadStream(filePath),
-  model: "gpt-4o-mini-transcribe"
-});
+  const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
 
-const formData = new FormData();
-formData.append("file", audioBlob, "audio.webm");
+  const formData = new FormData();
+  formData.append("file", audioBlob, "audio.webm");
 
-    try {
-      const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
-        method: "POST",
-        body: formData
-      });
+  try {
+    const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
+      method: "POST",
+      body: formData
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      console.log("WHISPER:", data);
-console.log("WHISPER:", data);
+    console.log("WHISPER:", data);
 
-if (data.text) {
-  sendMessageFromVoice(data.text);
-} else {
-  setState("idle");
-}
-      
-
-    } catch (err) {
-      console.error("WHISPER ERROR ❌", err);
+    if (data.text) {
+      sendMessageFromVoice(data.text);
+    } else {
       setState("idle");
     }
 
-    audioChunks = [];
-  };
+  } catch (err) {
+    console.error("WHISPER ERROR ❌", err);
+    setState("idle");
+  }
+
+  audioChunks = [];
+};
 
   mediaRecorder.stop();
   isRecording = false;
