@@ -351,7 +351,7 @@ function stopMic() {
 
   mediaRecorder.onstop = async () => {
 
-    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+    const audioBlob = new Blob(audioChunks, { type: "audio/webm;codecs=opus" });
 
     const formData = new FormData();
     formData.append("file", audioBlob, "audio.webm");
