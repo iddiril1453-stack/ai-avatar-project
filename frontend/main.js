@@ -351,12 +351,13 @@ function stopMic() {
 
   mediaRecorder.onstop = async () => {
 
-   const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+   const transcription = await openai.audio.transcriptions.create({
+  file: fs.createReadStream(filePath),
+  model: "gpt-4o-mini-transcribe"
+});
 
-   formData.append("file", audioBlob, "recording.webm");
-
-    const formData = new FormData();
-    formData.append("file", audioBlob, "audio.webm");
+const formData = new FormData();
+formData.append("file", audioBlob, "audio.webm");
 
     try {
       const res = await fetch("https://ai-avatar-project-d2r9.onrender.com/whisper", {
