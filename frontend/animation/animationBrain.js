@@ -52,31 +52,22 @@ handleMouseLook(mouse) {
 }
 
 handleTalking() {
-  if (!this.head) return;
+  if (!this.head || !this.model) return;
 
   const t = this.time;
 
-  // 🎯 base movement (yumuşak konuşma)
-  const baseY = Math.sin(t * 4) * 0.15;
-  const baseX = Math.sin(t * 2.5) * 0.08;
+  // 🔥 KAFA HAREKETİ (ARTTIRILDI)
+  this.head.rotation.y = Math.sin(t * 3) * 0.4;
+  this.head.rotation.x = Math.sin(t * 2) * 0.25;
 
-  // 🎯 mikro jitter (insan hissi)
-  const jitterY = (Math.random() - 0.5) * 0.05;
-  const jitterX = (Math.random() - 0.5) * 0.03;
+  // 🔥 GÖVDE HAFİF DÖNÜŞ
+  this.model.rotation.y = Math.sin(t * 2) * 0.08;
 
-  // 🎯 pause effect (konuşma ritmi)
-  const pause = Math.sin(t * 1.5) > 0.8 ? 0.3 : 1;
+  // 🔥 ÖNE EĞİLME (EN KRİTİK)
+  this.model.position.z = Math.sin(t * 3) * 0.05;
 
-  this.head.rotation.y =
-    (baseY + jitterY) * pause;
-
-  this.head.rotation.x =
-    (baseX + jitterX) * pause;
-}
-handleListening() {
-  if (!this.head) return;
-
-  this.head.rotation.y =
-    Math.sin(this.time * 3) * 0.2;
+  // 🔥 RİTİM (KONUŞMA HİSSİ)
+  this.model.position.y =
+    this.baseY + Math.sin(t * 6) * 0.02;
 }
 }
