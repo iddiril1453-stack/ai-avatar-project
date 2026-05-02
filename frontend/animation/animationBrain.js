@@ -56,10 +56,23 @@ handleTalking() {
 
   const t = this.time;
 
-  this.head.rotation.y = Math.sin(t * 5) * 0.3;
-  this.head.rotation.x = Math.sin(t * 3) * 0.15;
-}
+  // 🎯 base movement (yumuşak konuşma)
+  const baseY = Math.sin(t * 4) * 0.15;
+  const baseX = Math.sin(t * 2.5) * 0.08;
 
+  // 🎯 mikro jitter (insan hissi)
+  const jitterY = (Math.random() - 0.5) * 0.05;
+  const jitterX = (Math.random() - 0.5) * 0.03;
+
+  // 🎯 pause effect (konuşma ritmi)
+  const pause = Math.sin(t * 1.5) > 0.8 ? 0.3 : 1;
+
+  this.head.rotation.y =
+    (baseY + jitterY) * pause;
+
+  this.head.rotation.x =
+    (baseX + jitterX) * pause;
+}
 handleListening() {
   if (!this.head) return;
 
