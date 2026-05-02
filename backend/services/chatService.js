@@ -31,9 +31,8 @@ function mapIntentToState(intent) {
 
     const intent = classifyIntent(userMessage);
     setIntent(userId, intent);
-    
-const intent = classifyIntent(userMessage);
-setIntent(userId, intent);
+
+
 
 console.log("USER:", user);
 console.log("INTENT:", intent);
@@ -101,8 +100,8 @@ if (user.stage === "hot" && user.messageCount > 3) {
 
     addMessage(userId, "assistant", aiReply);
 
- return {
-  reply,
+return {
+  reply: aiReply,
   intent,
   state: mapIntentToState(intent)
 };
