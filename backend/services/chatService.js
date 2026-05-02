@@ -8,6 +8,17 @@ export async function handleChat(userId, userMessage) {
 
     const user = getUser(userId);
 
+// ✅ KRİTİK FIX
+if (!user) {
+  console.log("USER YOK ❌", userId);
+
+  return {
+    reply: "Seni yeni tanıyorum, başlayalım.",
+    intent: "cold",
+    state: "idle"
+  };
+}
+
 function mapIntentToState(intent) {
   if (intent === "hot") return "talking";
   if (intent === "warm") return "thinking";
@@ -20,12 +31,21 @@ function mapIntentToState(intent) {
 
     const intent = classifyIntent(userMessage);
     setIntent(userId, intent);
+    
+const intent = classifyIntent(userMessage);
+setIntent(userId, intent);
+
+console.log("USER:", user);
+console.log("INTENT:", intent);
+
 
 const systemPrompt = `
 Sen Todi adında bir araç kaplama satış uzmanısın.
 
 Kullanıcı geçmişi:
-${user.history.map(m => `${m.role}: ${m.content}`).join("\n")}
+${(user.history || []).map(m => `${m.role}: ${m.content}`).join("\n")}
+
+
 
 Kullanıcının seviyesi:
 ${user.stage}
@@ -36,6 +56,8 @@ KURAL:
 - kullanıcıyı yönlendir
 - teklifleri doğal ver
 `;
+
+
 
     // 🔥 HOT USER → direkt satış
     if (intent === "hot") {

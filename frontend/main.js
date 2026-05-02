@@ -191,14 +191,15 @@ async function sendMessageCore(text) {
 
     const data = await res.json();
 
-    if (data.reply) {
-
-  speak(data.reply);
-
-  if (data.state) {
-    setState(data.state);   // 🔥 server brain sync
-  }
+ if (data.state) {
+  setState(data.state);
 }
+
+if (data.reply) {
+  speak(data.reply);
+}
+  
+
 
   } catch (err) {
     console.error(err);
