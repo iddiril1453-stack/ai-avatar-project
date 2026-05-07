@@ -27,6 +27,34 @@ export async function handleChat(userId, userMessage) {
       };
     }
 
+function updateLeadProfile(user, message) {
+
+  if (!user.lead) {
+    user.lead = {
+      budget: null,
+      carType: null,
+      interestLevel: 0
+    };
+  }
+
+  const msg = message.toLowerCase();
+
+  // bütçe yakalama
+  if (msg.includes("bütçe") || msg.includes("tl")) {
+    user.lead.budget = "detected";
+  }
+
+  // ilgi seviyesi
+  if (msg.includes("fiyat") || msg.includes("ne kadar")) {
+    user.lead.interestLevel += 1;
+  }
+
+  return user.lead;
+}
+
+
+
+
     // 🧠 STATE MAP
     function mapIntentToState(intent) {
       if (intent === "hot") return "talking";
@@ -55,27 +83,180 @@ export async function handleChat(userId, userMessage) {
     // =========================
     // 🧠 SYSTEM PROMPT
     // =========================
-    const systemPrompt = `
-Sen Todi adında premium bir araç kaplama danışmanısın.
+export const todicarKnowledge = `
 
-Görevin:
-- kullanıcıya yardımcı olmak
-- güven vermek
-- doğru ürünü önermek
-- satışa doğal şekilde yönlendirmek
+🚫 TODICAR BİR ARAÇ SATIŞ PLATFORMU DEĞİLDİR
+TODICAR = Araç YENİLEME + KORUMA + KOZMETİK MERKEZİ
 
-KONUŞMA TARZI:
-- kısa konuş
-- doğal konuş
-- arkadaş canlısı ol
-- gereksiz uzatma
-- emoji kullanma
-- madde listesi yapma
+---
 
-SATIŞ DAVRANIŞI:
-- cold → bilgi ver
-- warm → yönlendir
-- hot → teklif + kapama
+🏢 NEDEN TODICAR?
+
+01 - Premium Malzeme
+TShield, TGuard, Wrexpro, Avery Dennison, Rhoswax, HDtecs, XPEL kullanılır.
+
+02 - Uzman Teknisyenler
+15+ yıl deneyim, fabrika sertifikalı uzman ekip.
+
+03 - Her Şey Tek Yerde
+Kaplama, cam filmi, temizlik, multimedya, ses sistemleri tek merkez.
+
+04 - Garantili Hizmet
+Tüm işlemler resmi garanti kapsamındadır.
+
+---
+
+🛠️ HİZMETLER
+
+🔒 KORUMA
+- TShield PPF (şeffaf kaplama)
+- Wrexpro Seramik Kaplama
+- TGuard Cam Filmi
+
+🧼 KOZMETİK
+- Rhoswax Pasta & Cila
+- TodiPro Detaylı Temizlik
+- Boyasız Göçük Onarım (DentDoc)
+
+🎧 DONANIM
+- HDtecs Multimedya
+- Ses sistemleri
+- İç dış dizayn
+
+---
+
+🧠 ÜRÜN DETAYLARI
+
+🛡️ TShield PPF
+- 10 yıl ömür
+- 5 yıl garanti
+- self-healing (kendi kendini onarma)
+- UV koruma
+- taş & çizik koruması
+- görünmez koruma
+- araç satılsa bile garanti devre eder
+
+---
+
+💎 Wrexpro Seramik Kaplama
+- 2 yıl / 5 yıl seçenek
+- nano teknoloji
+- yüksek parlaklık
+- su itici yüzey
+- kolay temizlik
+
+---
+
+🌡️ TGuard Cam Filmi
+- ömür boyu garanti
+- %99 ısı engelleme
+- %100 UV koruma
+- karbon teknoloji
+- cam güçlendirme
+
+---
+
+✨ Rhoswax Pasta & Cila
+AMACI:
+- kılcal çizik giderme
+- showroom parlaklığı
+- reçine temizliği
+- renk canlandırma
+- mat yüzey düzeltme
+
+UYGULAMA:
+01 boya analizi
+02 yıkama & dekontaminasyon
+03 pasta uygulama
+04 cila & koruma
+
+---
+
+🧽 TodiPro Detaylı Temizlik
+- iç & dış temizlik
+- buharlı temizlik
+- deri bakım
+- koku giderme (ozon)
+- motor temizliği
+
+---
+
+🔧 UYGULAMA MANTIĞI
+
+PPF:
+01 araç analizi
+02 yüzey hazırlığı
+03 film kesimi
+04 uygulama
+05 kürleme
+06 teslim
+
+---
+
+💬 SIKÇA SORULANLAR
+
+❓ PPF ne kadar dayanır?
+→ 10 yıl ömür + 5 yıl garanti
+
+❓ Film boya bozar mı?
+→ Hayır, doğru sökümde zarar vermez
+
+❓ Seramik kaplama ne sağlar?
+→ parlaklık + su iticilik + UV koruma
+
+❓ Cam filmi yasal mı?
+→ Ön hariç tüm camlarda yasal
+
+❓ Detaylı temizlik ne kadar sürer?
+→ 2-6 saat arası
+
+❓ Pasta-cila çizik giderir mi?
+→ Kılcal çizikleri giderir, derin çizik değil
+
+---
+
+🧠 SATIŞ KURALLARI
+
+- TODICAR araç satmaz
+- sadece hizmet sunar
+- kullanıcıya baskı yapılmaz
+- danışman gibi konuşulur
+- kısa ve net cevap verilir
+
+Cold → bilgi
+Warm → öneri
+Hot → teklif
+
+---
+
+🎯 HEDEF
+
+- güven oluştur
+- doğru hizmet öner
+- kullanıcıyı randevuya yönlendir
+- doğal konuşma
+
+---
+
+💬 KONUŞMA TARZI
+
+- kısa cümle
+- doğal insan gibi
+- satışçı değil danışman gibi
+- emoji yok
+- liste yapma (çok gerekmedikçe)
+- kullanıcıyı sıkma
+
+---
+
+🎯 HEDEF
+
+Kullanıcıyı:
+→ doğru hizmete yönlendir
+→ güven oluştur
+→ randevuya yaklaştır
+
+
 
 KULLANICI SEVİYESİ:
 ${user.stage}
@@ -123,10 +304,18 @@ ${(user.history || [])
     // 🤖 AI RESPONSE
     // =========================
     const productType = detectProductType(userMessage);
+const lead = updateLeadProfile(user, userMessage);
+
 const recommendation = productMap[productType];
     const aiReply = await generateAIResponse(userMessage, systemPrompt);
 
-    const finalReply = `${aiReply}\n\nSenin aracın için önerim: ${recommendation}`;
+    let extra = "";
+
+if (lead.interestLevel >= 2) {
+  extra = "\nİstersen sana bugün özel fiyat çıkarabilirim.";
+}
+
+const finalReply = `${aiReply}\n\nÖnerim: ${recommendation}${extra}`;
 
 addMessage(userId, "assistant", finalReply);
 
