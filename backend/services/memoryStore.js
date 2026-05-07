@@ -12,6 +12,8 @@ export function getUser(userId) {
     };
   }
 
+
+  
   return users[userId];
 }
 
