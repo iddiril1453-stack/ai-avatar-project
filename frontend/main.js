@@ -259,6 +259,15 @@ currentAudio = audio;
 
 audio.play();
 
+audio.onended = () => {
+
+  setState("idle");
+
+  URL.revokeObjectURL(audioUrl);
+
+  currentAudio = null;
+};
+
   } catch (err) {
 
     console.error("TTS ERROR ❌", err);
@@ -330,7 +339,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   sendBtn?.addEventListener("click", sendMessage);
   input?.addEventListener("keydown", e => {
-    if (e.key === "Enter") sendMessage();
+  if (e.key === "Enter") sendMessage();
+});
 
 // 🎯 AUTO GREETING
 setTimeout(() => {
@@ -340,8 +350,6 @@ setTimeout(() => {
   );
 
 }, 1500);
-
-  });
 
   const micBtn = document.createElement("button");
   micBtn.innerText = "🎤 Hold";
