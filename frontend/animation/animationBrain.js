@@ -26,6 +26,23 @@ export class AnimationBrain {
     if (this.state === "talking") this.handleTalking();
     if (this.state === "listening") this.handleListening();
   }
+handleListening() {
+  if (!this.head) return;
+
+  const t = this.time;
+
+  // 🎯 hafif kafa eğme
+  this.head.rotation.x = 0.15;
+
+  // 🎯 çok hafif sağ sol hareket
+  this.head.rotation.y =
+    Math.sin(t * 1.5) * 0.08;
+
+  // 🎯 küçük odak hissi
+  this.head.rotation.z =
+    Math.sin(t * 2) * 0.03;
+}
+
 
   handleIdleMotion() {
     if (!this.model) return;
