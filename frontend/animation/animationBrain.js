@@ -22,6 +22,7 @@ export class AnimationBrain {
 
     this.handleIdleMotion();
     this.handleMouseLook(mouse);
+    this.relaxHead();
 
    if (this.state === "talking") this.handleTalking();
 
@@ -102,4 +103,26 @@ handleTalking() {
       this.baseY + Math.sin(t * 2) * 0.005;
   }
 }
+relaxHead() {
+  if (!this.head) return;
+
+  // 🎯 talking/listening/thinking dışında
+  // kafayı yumuşak normale döndür
+  if (
+    this.state !== "talking" &&
+    this.state !== "listening" &&
+    this.state !== "thinking"
+  ) {
+
+    this.head.rotation.x +=
+      (0 - this.head.rotation.x) * 0.05;
+
+    this.head.rotation.y +=
+      (0 - this.head.rotation.y) * 0.05;
+
+    this.head.rotation.z +=
+      (0 - this.head.rotation.z) * 0.05;
+  }
+}
+
 }
