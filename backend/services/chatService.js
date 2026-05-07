@@ -83,7 +83,11 @@ function updateLeadProfile(user, message) {
     // =========================
     // 🧠 SYSTEM PROMPT
     // =========================
-export const todicarKnowledge = `
+const todicarKnowledge = `
+...
+`;
+
+export { todicarKnowledge };`
 
 🚫 TODICAR BİR ARAÇ SATIŞ PLATFORMU DEĞİLDİR
 TODICAR = Araç YENİLEME + KORUMA + KOZMETİK MERKEZİ
