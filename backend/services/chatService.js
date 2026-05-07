@@ -269,6 +269,28 @@ export async function handleChat(userId, userMessage) {
 
     const aiReply = await generateAIResponse(userMessage, systemPrompt);
 
+// =========================
+// 🔥 CONVERSION FUNNEL EKLENECEK YER
+// =========================
+
+function generateWhatsAppLink(user, message) {
+  const phone = "905362811539";
+
+  const text = encodeURIComponent(
+`Merhaba TODICAR
+User: ${userId}
+Stage: ${user.stage}
+Interest: ${user.lead?.interestLevel || 0}
+Mesaj: ${message}`
+  );
+
+  return `https://wa.me/${phone}?text=${text}`;
+}
+
+function generateBookingLink() {
+  return "https://todicar.com/randevu";
+}
+
     let extra = "";
     if (lead.interestLevel >= 2) {
       extra = "\nİstersen sana bugün özel fiyat çıkarabilirim.";
