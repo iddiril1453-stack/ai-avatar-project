@@ -269,7 +269,9 @@ KULLANICI GEÇMİŞİ:
 ${(user.history || [])
   .map(m => `${m.role}: ${m.content}`)
   .join("\n")}
-`;
+  export { todicarKnowledge }
+  ;`
+
 
     // =========================
     // 🔥 HOT USER (TEK KAYNAK)
