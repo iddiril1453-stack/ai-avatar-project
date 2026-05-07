@@ -25,6 +25,7 @@ let isRecording = false;
 
 let breathTime = 0;
 let currentAudio = null;
+let isSpeaking = false;
 
 const mouse = { x: 0, y: 0 };
 const clock = new THREE.Clock();
@@ -192,11 +193,11 @@ async function sendMessageCore(text) {
 
     const data = await res.json();
 
- if (data.state) {
+if (data.state && !isSpeaking) {
   setState(data.state);
 }
 
-if (data.reply) {
+if (data.reply && avatarState !== "talking") {
   speak(data.reply);
 }
   
@@ -228,7 +229,9 @@ async function speak(text) {
 
   try {
 
-    setState("talking");
+    if (!isSpeaking) {
+  isSpeaking = true;
+}
 
     // 🔥 eski browser seslerini kapat
 speechSynthesis.cancel();
@@ -260,6 +263,8 @@ currentAudio = audio;
 audio.play();
 
 audio.onended = () => {
+
+  isSpeaking = false;
 
   setState("idle");
 
