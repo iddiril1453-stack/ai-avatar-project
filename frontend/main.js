@@ -301,6 +301,16 @@ window.addEventListener("DOMContentLoaded", () => {
   sendBtn?.addEventListener("click", sendMessage);
   input?.addEventListener("keydown", e => {
     if (e.key === "Enter") sendMessage();
+
+// 🎯 AUTO GREETING
+setTimeout(() => {
+
+  speak(
+    "Merhaba. Todicar'a hoş geldiniz. Size araç seçimi konusunda yardımcı olabilirim."
+  );
+
+}, 1500);
+
   });
 
   const micBtn = document.createElement("button");
@@ -324,4 +334,5 @@ window.addEventListener("DOMContentLoaded", () => {
   micBtn.addEventListener("mouseup", stopMic);
   micBtn.addEventListener("touchstart", startMic);
   micBtn.addEventListener("touchend", stopMic);
+  
 });
