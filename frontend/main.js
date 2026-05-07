@@ -223,18 +223,41 @@ function sendMessageFromVoice(text) {
 }
 
 /* ========================= SPEAK */
-function speak(text) {
+async function speak(text) {
 
-  setState("talking");
+  try {
 
-  speechSynthesis.cancel();
+    setState("talking");
 
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "tr-TR";
+    const res = await fetch(
+      "https://ai-avatar-project-d2r9.onrender.com/tts",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+      }
+    );
 
-  u.onend = () => setState("idle");
+    const blob = await res.blob();
 
-  speechSynthesis.speak(u);
+    const audioUrl = URL.createObjectURL(blob);
+
+    const audio = new Audio(audioUrl);
+
+    audio.onended = () => {
+      setState("idle");
+    };
+
+    audio.play();
+
+  } catch (err) {
+
+    console.error("TTS ERROR ❌", err);
+
+    setState("idle");
+  }
 }
 
 /* ========================= MIC */
