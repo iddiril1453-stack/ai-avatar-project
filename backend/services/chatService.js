@@ -3,6 +3,14 @@ import { classifyIntent } from "./userIntentClassifier.js";
 import { salesEngine } from "./salesEngine.js";
 import { getUser, addMessage, setIntent } from "./memoryStore.js";
 
+const productMap = {
+  suv: "PPF + Seramik Paket",
+  sport: "Full PPF Premium",
+  luxury: "Seramik + İç Koruma",
+  sedan: "Standart PPF Paket",
+  unknown: "Genel Koruma Paketleri"
+};
+
 export async function handleChat(userId, userMessage) {
   try {
 
@@ -114,9 +122,13 @@ ${(user.history || [])
     // =========================
     // 🤖 AI RESPONSE
     // =========================
+    const productType = detectProductType(userMessage);
+const recommendation = productMap[productType];
     const aiReply = await generateAIResponse(userMessage, systemPrompt);
 
-    addMessage(userId, "assistant", aiReply);
+    const finalReply = `${aiReply}\n\nSenin aracın için önerim: ${recommendation}`;
+
+addMessage(userId, "assistant", finalReply);
 
     return {
       reply: aiReply,
@@ -143,4 +155,22 @@ function updateStage(user) {
   if (user.messageCount <= 2) return "cold";
   if (user.messageCount <= 6) return "warm";
   return "hot";
+}
+function detectProductType(message) {
+
+  const msg = message.toLowerCase();
+
+  if (msg.includes("suv") || msg.includes("range") || msg.includes("jeep"))
+    return "suv";
+
+  if (msg.includes("bmw") || msg.includes("porsche") || msg.includes("amg"))
+    return "sport";
+
+  if (msg.includes("mercedes") || msg.includes("audi") || msg.includes("bmw 7"))
+    return "luxury";
+
+  if (msg.includes("sedan") || msg.includes("passat") || msg.includes("corolla"))
+    return "sedan";
+
+  return "unknown";
 }
