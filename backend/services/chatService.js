@@ -11,191 +11,206 @@ const productMap = {
   unknown: "Genel Koruma Paketleri"
 };
 
-// =========================
-// 🧠 TODICAR KNOWLEDGE BASE
-// =========================
+/* =========================
+   🧠 TODICAR KNOWLEDGE BASE (FULL EXPANDED)
+========================= */
 export const todicarKnowledge = `
 
 🚫 TODICAR BİR ARAÇ SATIŞ PLATFORMU DEĞİLDİR
 TODICAR = Araç YENİLEME + KORUMA + KOZMETİK MERKEZİ
 
 🏢 NEDEN TODICAR?
-
 01 Premium Malzeme
-TShield, TGuard, Wrexpro, Avery Dennison, Rhoswax, HDtecs ve XPEL gibi sektörün öncü markalarını kullanıyoruz.
+TShield, TGuard, Wrexpro, Avery Dennison, Rhoswax, HDtecs, XPEL kullanılır.
 
 02 Uzman Teknisyenler
-Ekibimiz 15+ yıllık deneyime ve fabrika sertifikalarına sahiptir.
+15+ yıl deneyim, fabrika sertifikalı ekip.
 
 03 Her Şey Tek Yerde
-Kaplama, cam filmi, multimedya, ses sistemleri tek merkezde.
+Kaplama, cam filmi, temizlik, ses, multimedya tek merkez.
 
 04 Garantili Hizmet
-Tüm işlemler resmi garanti kapsamındadır.
+Tüm işlemler garanti kapsamındadır.
 
-━━━━━━━━━━━━━━━━━━
-🔒 ŞEFFAF KAPLAMA (PPF) - TSHIELD
-━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━
+🛡️ 1) TSHIELD PPF (ŞEFFAF KAPLAMA)
+━━━━━━━━━━━━━━━━━━━━━━
 
-AMACI:
-Aracın boyasını çizik, taş ve darbelere karşı korumak.
+🎯 AMAÇ:
+Boyayı çizik, taş, darbe ve dış etkenlerden korumak
 
-ÖZELLİKLER:
+💎 ÖZELLİKLER:
 - 10 yıl ömür
 - 5 yıl garanti
-- self-healing (kendi kendini onarma)
-- UV koruma
+- self-healing (güneşte çizik kapatma)
+- UV koruma %99
 - taş darbe koruması
 - görünmez koruma
 - ekstra parlaklık
-- araç satılsa bile garanti devre eder
+- satışta garanti devre eder
 
-UYGULAMA:
-01 araç inceleme
-02 yüzey hazırlığı
-03 film kesimi
-04 uygulama
-05 kürleme
-06 teslim
+🛠️ UYGULAMA:
+1 araç analiz
+2 yüzey hazırlığı
+3 film kesimi
+4 uygulama
+5 kürleme
+6 teslim
 
-PAKETLER:
-- başlangıç paket
-- deluxe paket
-- premium paket
-
-SIKÇA SORULANLAR:
+❓ SIK SORULANLAR:
 PPF ne kadar dayanır? → 10 yıl
 Boya bozar mı? → Hayır
-Hangi alanlara uygulanır? → Tüm boyalı yüzeyler
+Hangi alan? → Tüm boyalı yüzeyler
+Neden yaptırılır? → Araç değerini korumak + çizik önlemek
 
-━━━━━━━━━━━━━━━━━━
-💎 SERAMİK KAPLAMA - WREXPRO
-━━━━━━━━━━━━━━━━━━
+🛡️ KORUMA:
+Taş izi, güneş yanığı, çizik, kimyasal zarar
 
-AMACI:
-Parlaklık + su iticilik + boya koruma
+━━━━━━━━━━━━━━━━━━━━━━
+💎 2) WREXPRO SERAMİK KAPLAMA
+━━━━━━━━━━━━━━━━━━━━━━
 
-ÖZELLİKLER:
+🎯 AMAÇ:
+Parlaklık + hidrofobik koruma + boya koruma
+
+💎 ÖZELLİKLER:
 - nano teknoloji
 - yüksek parlaklık
 - su itici yüzey
-- kolay temizlik
+- kir tutmaz
 - 2 yıl / 5 yıl garanti
 
-UYGULAMA:
-01 yıkama
-02 boya düzeltme
-03 yüzey hazırlığı
-04 uygulama
-05 kürleme
+🛠️ UYGULAMA:
+1 yıkama
+2 boya düzeltme
+3 yüzey hazırlığı
+4 seramik uygulama
+5 kürleme
 
-SIKÇA SORULANLAR:
-Ne kadar sürer? → 2-5 yıl koruma
-PPF ile olur mu? → Evet
+❓ SIK SORULANLAR:
+Ne işe yarar? → Parlaklık + koruma
+PPF ile olur mu? → Evet birlikte uygulanır
+Neden yaptırılır? → Aracı yeni gibi tutmak
 
-━━━━━━━━━━━━━━━━━━
-🌡️ CAM FİLMİ - TGUARD
-━━━━━━━━━━━━━━━━━━
+🛡️ KORUMA:
+UV, su lekesi, kir, oksidasyon
 
-AMACI:
-Isı engelleme + UV koruma + gizlilik
+━━━━━━━━━━━━━━━━━━━━━━
+🌡️ 3) TGUARD CAM FİLMİ
+━━━━━━━━━━━━━━━━━━━━━━
 
-ÖZELLİKLER:
+🎯 AMAÇ:
+Isı azaltma + UV koruma + gizlilik
+
+💎 ÖZELLİKLER:
 - %99 ısı engelleme
 - %100 UV koruma
-- karbon materyal
+- karbon yapı
 - cam güçlendirme
 - ömür boyu garanti
-- araç satılsa bile devam eder
 
-UYGULAMA:
-01 cam temizliği
-02 kesim
-03 uygulama
-04 kontrol
+🛠️ UYGULAMA:
+1 cam temizliği
+2 kesim
+3 uygulama
+4 kontrol
 
-SIKÇA SORULANLAR:
-Yasal mı? → Ön cam hariç yasal
+❓ SIK SORULANLAR:
+Yasal mı? → Ön hariç evet
 Süre? → 2-4 saat
+Neden? → Konfor + serinlik
 
-━━━━━━━━━━━━━━━━━━
-✨ PASTA & CİLA - RHOSWAX
-━━━━━━━━━━━━━━━━━━
+🛡️ KORUMA:
+Güneş, ısı, UV, cam kırılması
 
-AMACI:
-Çizik giderme + parlaklık + yüzey yenileme
+━━━━━━━━━━━━━━━━━━━━━━
+✨ 4) RHOSWAX PASTA & CİLA
+━━━━━━━━━━━━━━━━━━━━━━
 
-ÖZELLİKLER:
+🎯 AMAÇ:
+Çizik giderme + parlaklık
+
+💎 ÖZELLİKLER:
 - kılcal çizik giderme
 - showroom parlaklığı
 - reçine temizliği
 - renk canlandırma
-- mat yüzey düzeltme
 
-UYGULAMA:
-01 boya analizi
-02 yıkama
-03 pasta
-04 cila
+🛠️ UYGULAMA:
+1 boya analizi
+2 yıkama
+3 pasta
+4 cila
 
-SIKÇA SORULANLAR:
-Derin çizik? → Hayır
+❓ SIK SORULANLAR:
+Derin çizik gider mi? → Hayır
 Ne sıklık? → Yılda 1
+Neden? → Görünüm yenileme
 
-━━━━━━━━━━━━━━━━━━
-🧽 DETAYLI TEMİZLİK - TODIPRO
-━━━━━━━━━━━━━━━━━━
+🛡️ KORUMA:
+Yüzey oksidasyonu + matlık
 
-AMACI:
-Aracı fabrika temizliğine getirmek
+━━━━━━━━━━━━━━━━━━━━━━
+🧽 5) TODIPRO DETAYLI TEMİZLİK
+━━━━━━━━━━━━━━━━━━━━━━
 
-ÖZELLİKLER:
+🎯 AMAÇ:
+Fabrika temizliği + hijyen
+
+💎 ÖZELLİKLER:
 - iç dış temizlik
-- buharlı temizlik
+- buhar temizliği
 - deri bakım
 - koku giderme
 - motor temizliği
 
-UYGULAMA:
-01 değerlendirme
-02 dış temizlik
-03 iç temizlik
-04 bakım
-05 final
+🛠️ UYGULAMA:
+1 değerlendirme
+2 dış temizlik
+3 iç temizlik
+4 bakım
+5 final
 
-SIKÇA SORULANLAR:
+❓ SIK SORULANLAR:
 Süre? → 2-6 saat
 Ne sıklık? → 6 ay - 1 yıl
+Neden? → Hijyen + yenilenme
 
-━━━━━━━━━━━━━━━━━━
-🎧 MULTIMEDYA - HDTECS
-━━━━━━━━━━━━━━━━━━
+🛡️ KORUMA:
+Kir, bakteri, kötü koku
 
-AMACI:
+━━━━━━━━━━━━━━━━━━━━━━
+🎧 6) HDTECS MULTIMEDYA
+━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 AMAÇ:
 Araç içi teknoloji yükseltme
 
-ÖZELLİKLER:
+💎 ÖZELLİKLER:
 - CarPlay
 - Android Auto
-- kablosuz bağlantı
 - ses sistemleri
+- kablosuz bağlantı
 
-━━━━━━━━━━━━━━━━━━
+❓ NEDEN YAPTIRILIR:
+Konfor + modern sürüş deneyimi
+
+━━━━━━━━━━━━━━━━━━━━━━
 🧠 TODICAR KURALLARI
-
-- araç satışı yok
-- sadece hizmet
+- araç satılmaz
+- hizmet satılır
 - danışman gibi konuş
-- baskı yok
 - kısa cevap
+- baskı yok
 - güven odaklı
 
 KULLANICI SEVİYESİ:
-${user?.stage || "unknown"}
+${typeof user !== "undefined" ? user.stage : "unknown"}
 
 `;
 
-// system prompt FIX
+/* ========================= */
+
 const systemPrompt = todicarKnowledge;
 
 export async function handleChat(userId, userMessage) {
@@ -280,6 +295,8 @@ export async function handleChat(userId, userMessage) {
   }
 }
 
+/* ========================= */
+
 function updateStage(user) {
   if (user.messageCount <= 2) return "cold";
   if (user.messageCount <= 6) return "warm";
@@ -289,17 +306,10 @@ function updateStage(user) {
 function detectProductType(message) {
   const msg = message.toLowerCase();
 
-  if (msg.includes("suv") || msg.includes("range") || msg.includes("jeep"))
-    return "suv";
-
-  if (msg.includes("bmw") || msg.includes("porsche") || msg.includes("amg"))
-    return "sport";
-
-  if (msg.includes("mercedes") || msg.includes("audi") || msg.includes("bmw 7"))
-    return "luxury";
-
-  if (msg.includes("sedan") || msg.includes("passat") || msg.includes("corolla"))
-    return "sedan";
+  if (msg.includes("suv") || msg.includes("jeep")) return "suv";
+  if (msg.includes("bmw") || msg.includes("porsche")) return "sport";
+  if (msg.includes("mercedes") || msg.includes("audi")) return "luxury";
+  if (msg.includes("sedan")) return "sedan";
 
   return "unknown";
 }
