@@ -52,22 +52,18 @@ handleMouseLook(mouse) {
 }
 
 handleTalking() {
-  if (!this.head || !this.model) return;
+  if (!this.head) return;
 
   const t = this.time;
 
-  // 🔥 KAFA HAREKETİ (ARTTIRILDI)
-  this.head.rotation.y = Math.sin(t * 3) * 0.4;
-  this.head.rotation.x = Math.sin(t * 2) * 0.25;
+  // 🎯 SADECE KAFA (ANA KONUŞMA)
+  this.head.rotation.y = Math.sin(t * 3) * 0.25;
+  this.head.rotation.x = Math.sin(t * 2) * 0.15;
 
-  // 🔥 GÖVDE HAFİF DÖNÜŞ
-  this.model.rotation.y = Math.sin(t * 2) * 0.08;
-
-  // 🔥 ÖNE EĞİLME (EN KRİTİK)
-  this.model.position.z = Math.sin(t * 3) * 0.05;
-
-  // 🔥 RİTİM (KONUŞMA HİSSİ)
-  this.model.position.y =
-    this.baseY + Math.sin(t * 6) * 0.02;
+  // 🎯 ÇOK HAFİF GÖVDE (SADECE YAŞAM HİSSİ)
+  if (this.model) {
+    this.model.position.y =
+      this.baseY + Math.sin(t * 2) * 0.005;
+  }
 }
 }
