@@ -24,6 +24,7 @@ let audioChunks = [];
 let isRecording = false;
 
 let breathTime = 0;
+let currentAudio = null;
 
 const mouse = { x: 0, y: 0 };
 const clock = new THREE.Clock();
@@ -229,6 +230,9 @@ async function speak(text) {
 
     setState("talking");
 
+    // 🔥 eski browser seslerini kapat
+speechSynthesis.cancel();
+
     const res = await fetch(
       "https://ai-avatar-project-d2r9.onrender.com/tts",
       {
@@ -243,14 +247,17 @@ async function speak(text) {
     const blob = await res.blob();
 
     const audioUrl = URL.createObjectURL(blob);
+// 🔥 önceki audio varsa durdur
+if (currentAudio) {
+  currentAudio.pause();
+  currentAudio = null;
+}
 
-    const audio = new Audio(audioUrl);
+const audio = new Audio(audioUrl);
 
-    audio.onended = () => {
-      setState("idle");
-    };
+currentAudio = audio;
 
-    audio.play();
+audio.play();
 
   } catch (err) {
 
