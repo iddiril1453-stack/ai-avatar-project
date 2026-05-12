@@ -292,9 +292,28 @@ function generateBookingLink() {
 }
 
     let extra = "";
-    if (lead.interestLevel >= 2) {
-      extra = "\nİstersen sana bugün özel fiyat çıkarabilirim.";
-    }
+
+// 🔥 HOT LEAD → CONVERSION FUNNEL
+if (user.stage === "hot") {
+
+  const whatsapp = generateWhatsAppLink(user, userMessage);
+  const booking = generateBookingLink();
+
+  extra = `
+Sana en uygun işlem için:
+
+1) WhatsApp üzerinden hızlı teklif
+${whatsapp}
+
+2) Online randevu oluştur
+${booking}
+`;
+}
+
+// 🟡 WARM fallback (istersen kalsın)
+else if (lead.interestLevel >= 2) {
+  extra = "\nİstersen sana bugün özel fiyat çıkarabilirim.";
+}
 
     const finalReply = `${aiReply}\n\nÖnerim: ${recommendation}${extra}`;
 
