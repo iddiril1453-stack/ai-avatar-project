@@ -353,32 +353,12 @@ window.addEventListener("DOMContentLoaded", () => {
 // 🎯 AUTO GREETING
 setTimeout(() => {
 
-  speak(
-    "Merhaba. Todicar'a hoş geldiniz. Size araç seçimi konusunda yardımcı olabilirim."
-  );
+ speak(
+  "Merhaba. Todicar'a hoş geldiniz. Aracınızı uzun yıllar ilk günkü gibi korumak için size yardımcı olabilirim."
+);
 
 }, 1500);
 
-  const micBtn = document.createElement("button");
-  micBtn.innerText = "🎤 Hold";
-
-  Object.assign(micBtn.style, {
-    position: "absolute",
-    bottom: "20px",
-    right: "20px",
-    padding: "12px",
-    background: "#ff4444",
-    color: "#fff",
-    borderRadius: "10px",
-    border: "none",
-    zIndex: 9999
-  });
-
-  document.body.appendChild(micBtn);
-
-  micBtn.addEventListener("mousedown", startMic);
-  micBtn.addEventListener("mouseup", stopMic);
-  micBtn.addEventListener("touchstart", startMic);
-  micBtn.addEventListener("touchend", stopMic);
+  
   
 });

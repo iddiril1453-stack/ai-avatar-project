@@ -211,12 +211,36 @@ ${typeof user !== "undefined" ? user.stage : "unknown"}
 
 /* ========================= */
 
-const systemPrompt = todicarKnowledge;
 
 export async function handleChat(userId, userMessage) {
   try {
 
     const user = getUser(userId);
+const systemPrompt = `
+${todicarKnowledge}
+
+━━━━━━━━━━━━━━━━━━━━━━
+🧠 KULLANICI ANALİZİ
+━━━━━━━━━━━━━━━━━━━━━━
+
+Kullanıcı seviyesi:
+${user.stage || "cold"}
+
+Mesaj sayısı:
+${user.messageCount || 0}
+
+İlgi seviyesi:
+${user.lead?.interestLevel || 0}
+
+KONUŞMA TARZI:
+- kısa cevap ver
+- danışman gibi konuş
+- araç SATMA
+- hizmet öner
+- güven oluştur
+- kullanıcıyı randevuya yönlendir
+`;
+
 
     if (!user) {
       return {
