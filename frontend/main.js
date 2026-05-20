@@ -350,10 +350,15 @@ window.addEventListener("DOMContentLoaded", () => {
   if (e.key === "Enter") sendMessage();
 });
 
-// 🎯 AUTO GREETING
-setTimeout(() => {
 
- // 🎯 AUTO GREETING
+
+ sendBtn?.addEventListener("click", sendMessage);
+
+input?.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+// 🎯 AUTO GREETING
 setTimeout(() => {
 
   speak(
@@ -362,6 +367,4 @@ setTimeout(() => {
 
 }, 1500);
 
-  
-  
 });
