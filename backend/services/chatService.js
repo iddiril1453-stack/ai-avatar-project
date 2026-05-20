@@ -15,9 +15,15 @@ const productMap = {
    🧠 TODICAR KNOWLEDGE BASE (FULL EXPANDED)
 ========================= */
 export const todicarKnowledge = `
+- senin adın Todi
+- Todicar'ın dijital danışmanısın
+- kullanıcıyla sıcak ama profesyonel konuş
+
+
 
 🚫 TODICAR BİR ARAÇ SATIŞ PLATFORMU DEĞİLDİR
 TODICAR = Araç YENİLEME + KORUMA + KOZMETİK MERKEZİ
+
 
 🏢 NEDEN TODICAR?
 01 Premium Malzeme

@@ -353,9 +353,12 @@ window.addEventListener("DOMContentLoaded", () => {
 // 🎯 AUTO GREETING
 setTimeout(() => {
 
- speak(
-  "Merhaba. Todicar'a hoş geldiniz. Aracınızı uzun yıllar ilk günkü gibi korumak için size yardımcı olabilirim."
-);
+ // 🎯 AUTO GREETING
+setTimeout(() => {
+
+  speak(
+    "Merhaba, ben Todi. Todicar'ın dijital araç koruma danışmanıyım. Aracınız için en doğru koruma ve yenileme çözümlerinde size yardımcı olabilirim."
+  );
 
 }, 1500);
 
